@@ -1,6 +1,6 @@
-package pet.project1.realtyapp;
+package pet.project1.realtyapp.entity;
 
-public class TableEntity {
+public class MainCharacteristicsTableEntity {
     private int time;
     private double price;
     private double basicAbsoluteGrowth;
@@ -13,15 +13,15 @@ public class TableEntity {
     private double relativeAcceleration;
     private double advanceRatio;
 
-    public TableEntity(int time, double price) {
+    public MainCharacteristicsTableEntity(int time, double price) {
         this.time = time;
         this.price = price;
     }
 
-    public TableEntity(int time, double price, double basicAbsoluteGrowth,
-                       double chainAbsoluteGrowth, double chainGrowthRates, double basicGrowthRates,
-                       double chainGrowthRates2, double basicGrowthRates2, double absoluteValue,
-                       double relativeAcceleration, double advanceRatio) {
+    public MainCharacteristicsTableEntity(int time, double price, double basicAbsoluteGrowth,
+                                          double chainAbsoluteGrowth, double chainGrowthRates, double basicGrowthRates,
+                                          double chainGrowthRates2, double basicGrowthRates2, double absoluteValue,
+                                          double relativeAcceleration, double advanceRatio) {
         this.time = time;
         this.price = price;
         this.basicAbsoluteGrowth = basicAbsoluteGrowth;
@@ -35,9 +35,9 @@ public class TableEntity {
         this.advanceRatio = advanceRatio;
     }
 
-    public TableEntity(int time, double price, double basicAbsoluteGrowth, double chainAbsoluteGrowth,
-                       double chainGrowthRates, double basicGrowthRates, double chainGrowthRates2,
-                       double basicGrowthRates2, double absoluteValue) {
+    public MainCharacteristicsTableEntity(int time, double price, double basicAbsoluteGrowth, double chainAbsoluteGrowth,
+                                          double chainGrowthRates, double basicGrowthRates, double chainGrowthRates2,
+                                          double basicGrowthRates2, double absoluteValue) {
         this.time = time;
         this.price = price;
         this.basicAbsoluteGrowth = basicAbsoluteGrowth;
@@ -52,6 +52,50 @@ public class TableEntity {
     public int getTime() {
 
         return time;
+    }
+
+    public void setTime(int time) {
+        this.time = time;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public void setBasicAbsoluteGrowth(double basicAbsoluteGrowth) {
+        this.basicAbsoluteGrowth = basicAbsoluteGrowth;
+    }
+
+    public void setChainAbsoluteGrowth(double chainAbsoluteGrowth) {
+        this.chainAbsoluteGrowth = chainAbsoluteGrowth;
+    }
+
+    public void setChainGrowthRates(double chainGrowthRates) {
+        this.chainGrowthRates = chainGrowthRates;
+    }
+
+    public void setBasicGrowthRates(double basicGrowthRates) {
+        this.basicGrowthRates = basicGrowthRates;
+    }
+
+    public void setChainGrowthRates2(double chainGrowthRates2) {
+        this.chainGrowthRates2 = chainGrowthRates2;
+    }
+
+    public void setBasicGrowthRates2(double basicGrowthRates2) {
+        this.basicGrowthRates2 = basicGrowthRates2;
+    }
+
+    public void setAbsoluteValue(double absoluteValue) {
+        this.absoluteValue = absoluteValue;
+    }
+
+    public void setRelativeAcceleration(double relativeAcceleration) {
+        this.relativeAcceleration = relativeAcceleration;
+    }
+
+    public void setAdvanceRatio(double advanceRatio) {
+        this.advanceRatio = advanceRatio;
     }
 
     public double getPrice() {
