@@ -45,7 +45,6 @@ public class HelloApplication extends Application {
         TableColumn<MainCharacteristicsTableEntity, String> price = new TableColumn<>("Цена");
         price.setCellValueFactory(new PropertyValueFactory<>("price"));
 
-
         TableColumn<MainCharacteristicsTableEntity, String> chainAbsoluteGrowth = new TableColumn<>("Абсолютный прирост цепной");
         chainAbsoluteGrowth.setCellValueFactory(new PropertyValueFactory<>("chainAbsoluteGrowth"));
 
@@ -140,12 +139,12 @@ public class HelloApplication extends Application {
                                     absoluteValue, relativeAcceleration, advanceRatio));
                         } else {
                             tableData.add(new MainCharacteristicsTableEntity(time, price, chainAbsoluteGrowth, basicAbsoluteGrowth,
-                                    chainGrowthRates, basicGrowthRates, chainGrowthRates2, basicGrowthRates2,
-                                    absoluteValue));
+                                    chainGrowthRates, basicGrowthRates, chainGrowthRates2, basicGrowthRates2, absoluteValue));
                         }
                     }
                     series.getData().add(new XYChart.Data<>(time, price));
                 }
+
                 table2.setItems(tableData2);
                 table.setItems(tableData);
                 chart.getData().addAll(series, series2);
@@ -157,7 +156,7 @@ public class HelloApplication extends Application {
         HBox fileHBox = new HBox();
         fileHBox.getChildren().addAll(fileField, fileButton, okButton);
 
-        VBox vbox = new VBox(fileHBox, chart, table, table2);
+        VBox vbox = new VBox(fileHBox, table, table2, chart);
 
         fileButton.setOnAction(actionEvent -> {
             FileChooser fileChooser = new FileChooser();
@@ -168,7 +167,7 @@ public class HelloApplication extends Application {
         ScrollPane scrollPane = new ScrollPane(vbox);
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS); // Горизонтальная прокрутка
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
         scrollPane.setFocusTraversable(true);
         scrollPane.requestFocus();

@@ -1,4 +1,4 @@
-package pet.project1.realtyapp;
+package pet.project1.realtyapp.example;
 import javafx.application.Application;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
