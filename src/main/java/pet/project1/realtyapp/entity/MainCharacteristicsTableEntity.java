@@ -1,8 +1,7 @@
 package pet.project1.realtyapp.entity;
 
-public class MainCharacteristicsTableEntity {
-    private int time;
-    private double price;
+public class MainCharacteristicsTableEntity extends TableEntity{
+
     private double basicAbsoluteGrowth;
     private double chainAbsoluteGrowth;
     private double chainGrowthRates;
@@ -13,17 +12,11 @@ public class MainCharacteristicsTableEntity {
     private double relativeAcceleration;
     private double advanceRatio;
 
-    public MainCharacteristicsTableEntity(int time, double price) {
-        this.time = time;
-        this.price = price;
-    }
-
-    public MainCharacteristicsTableEntity(int time, double price, double basicAbsoluteGrowth,
+    public MainCharacteristicsTableEntity(double time, double price, double basicAbsoluteGrowth,
                                           double chainAbsoluteGrowth, double chainGrowthRates, double basicGrowthRates,
                                           double chainGrowthRates2, double basicGrowthRates2, double absoluteValue,
                                           double relativeAcceleration, double advanceRatio) {
-        this.time = time;
-        this.price = price;
+        super(time, price);
         this.basicAbsoluteGrowth = basicAbsoluteGrowth;
         this.chainAbsoluteGrowth = chainAbsoluteGrowth;
         this.chainGrowthRates = chainGrowthRates;
@@ -35,11 +28,10 @@ public class MainCharacteristicsTableEntity {
         this.advanceRatio = advanceRatio;
     }
 
-    public MainCharacteristicsTableEntity(int time, double price, double basicAbsoluteGrowth, double chainAbsoluteGrowth,
-                                          double chainGrowthRates, double basicGrowthRates, double chainGrowthRates2,
-                                          double basicGrowthRates2, double absoluteValue) {
-        this.time = time;
-        this.price = price;
+    public MainCharacteristicsTableEntity(double time, double price, double basicAbsoluteGrowth,
+                                          double chainAbsoluteGrowth, double chainGrowthRates, double basicGrowthRates,
+                                          double chainGrowthRates2, double basicGrowthRates2, double absoluteValue) {
+        super(time, price);
         this.basicAbsoluteGrowth = basicAbsoluteGrowth;
         this.chainAbsoluteGrowth = chainAbsoluteGrowth;
         this.chainGrowthRates = chainGrowthRates;
@@ -49,92 +41,79 @@ public class MainCharacteristicsTableEntity {
         this.absoluteValue = absoluteValue;
     }
 
-    public int getTime() {
-
-        return time;
-    }
-
-    public void setTime(int time) {
-        this.time = time;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
-    }
-
-    public void setBasicAbsoluteGrowth(double basicAbsoluteGrowth) {
-        this.basicAbsoluteGrowth = basicAbsoluteGrowth;
-    }
-
-    public void setChainAbsoluteGrowth(double chainAbsoluteGrowth) {
-        this.chainAbsoluteGrowth = chainAbsoluteGrowth;
-    }
-
-    public void setChainGrowthRates(double chainGrowthRates) {
-        this.chainGrowthRates = chainGrowthRates;
-    }
-
-    public void setBasicGrowthRates(double basicGrowthRates) {
-        this.basicGrowthRates = basicGrowthRates;
-    }
-
-    public void setChainGrowthRates2(double chainGrowthRates2) {
-        this.chainGrowthRates2 = chainGrowthRates2;
-    }
-
-    public void setBasicGrowthRates2(double basicGrowthRates2) {
-        this.basicGrowthRates2 = basicGrowthRates2;
-    }
-
-    public void setAbsoluteValue(double absoluteValue) {
-        this.absoluteValue = absoluteValue;
-    }
-
-    public void setRelativeAcceleration(double relativeAcceleration) {
-        this.relativeAcceleration = relativeAcceleration;
-    }
-
-    public void setAdvanceRatio(double advanceRatio) {
-        this.advanceRatio = advanceRatio;
-    }
-
-    public double getPrice() {
-        return price;
+    public MainCharacteristicsTableEntity(double time, double price) {
+        super(time, price);
     }
 
     public double getBasicAbsoluteGrowth() {
         return basicAbsoluteGrowth;
     }
 
+    public void setBasicAbsoluteGrowth(double basicAbsoluteGrowth) {
+        this.basicAbsoluteGrowth = basicAbsoluteGrowth;
+    }
+
     public double getChainAbsoluteGrowth() {
         return chainAbsoluteGrowth;
+    }
+
+    public void setChainAbsoluteGrowth(double chainAbsoluteGrowth) {
+        this.chainAbsoluteGrowth = chainAbsoluteGrowth;
     }
 
     public double getChainGrowthRates() {
         return chainGrowthRates;
     }
 
+    public void setChainGrowthRates(double chainGrowthRates) {
+        this.chainGrowthRates = chainGrowthRates;
+    }
+
     public double getBasicGrowthRates() {
         return basicGrowthRates;
+    }
+
+    public void setBasicGrowthRates(double basicGrowthRates) {
+        this.basicGrowthRates = basicGrowthRates;
     }
 
     public double getChainGrowthRates2() {
         return chainGrowthRates2;
     }
 
+    public void setChainGrowthRates2(double chainGrowthRates2) {
+        this.chainGrowthRates2 = chainGrowthRates2;
+    }
+
     public double getBasicGrowthRates2() {
         return basicGrowthRates2;
+    }
+
+    public void setBasicGrowthRates2(double basicGrowthRates2) {
+        this.basicGrowthRates2 = basicGrowthRates2;
     }
 
     public double getAbsoluteValue() {
         return absoluteValue;
     }
 
+    public void setAbsoluteValue(double absoluteValue) {
+        this.absoluteValue = absoluteValue;
+    }
+
     public double getRelativeAcceleration() {
         return relativeAcceleration;
     }
 
+    public void setRelativeAcceleration(double relativeAcceleration) {
+        this.relativeAcceleration = relativeAcceleration;
+    }
+
     public double getAdvanceRatio() {
         return advanceRatio;
+    }
+
+    public void setAdvanceRatio(double advanceRatio) {
+        this.advanceRatio = advanceRatio;
     }
 }

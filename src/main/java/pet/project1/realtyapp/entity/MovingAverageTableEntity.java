@@ -1,36 +1,16 @@
 package pet.project1.realtyapp.entity;
 
-public class MovingAverageTableEntity {
+public class MovingAverageTableEntity extends TableEntity {
 
-    private int time;
-    private double price;
     private double movingAverage;
 
-    public MovingAverageTableEntity(int time, double price) {
-        this.time = time;
-        this.price = price;
-    }
-
-    public MovingAverageTableEntity(int time, double price, double movingAverage) {
-        this.time = time;
-        this.price = price;
+    public MovingAverageTableEntity(double time, double price, double movingAverage) {
+        super(time, price);
         this.movingAverage = movingAverage;
     }
 
-    public int getTime() {
-        return time;
-    }
-
-    public void setTime(int time) {
-        this.time = time;
-    }
-
-    public double getPrice() {
-        return price;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
+    public MovingAverageTableEntity(double time, double price) {
+        super(time, price);
     }
 
     public double getMovingAverage() {
