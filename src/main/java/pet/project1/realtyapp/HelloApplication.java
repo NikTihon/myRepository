@@ -19,7 +19,9 @@ import pet.project1.realtyapp.entity.MovingAverageTableEntity;
 
 import java.io.File;
 import java.io.FileReader;
+import java.util.Arrays;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.IntStream;
 
 public class HelloApplication extends Application {
@@ -62,7 +64,7 @@ public class HelloApplication extends Application {
         return tableData2.stream()
                 .skip(1)
                 .limit(tableData2.size() - 2)
-                .mapToDouble(i -> i.getPrice() * i.getTime())
+                .mapToDouble(i -> i.getMovingAverage() * i.getTime())
                 .sum();
     }
 
@@ -78,6 +80,25 @@ public class HelloApplication extends Application {
         return k * x + b;
     }
 
+    private double lnPrice() {
+        return tableData2.stream()
+                .skip(1)
+                .limit(tableData2.size() - 2)
+                .mapToDouble(i -> Math.log(i.getMovingAverage()))
+                .sum();
+    }
+
+    private double timeLnPrice() {
+        return tableData2.stream()
+                .skip(1)
+                .limit(tableData2.size() - 2)
+                .mapToDouble(i -> i.getTime() * Math.log(i.getMovingAverage()))
+                .sum();
+    }
+
+    private double exponentialFunction(double x, double a0, double a2) {
+        return a0 * Math.pow(a2, x);
+    }
 
     private void initApp() {
         xAxis.setLabel("Время");
@@ -211,16 +232,32 @@ public class HelloApplication extends Application {
                 System.out.println(k + " " + b);
 
                 XYChart.Series series3 = new XYChart.Series();
+                series3.setName("Линейная функция");
 
                 for (int i = 0; i < tableData2.size(); i++) {
                     series3.getData().add(new XYChart.Data<>(tableData2.get(i).getTime(), linearFunction(tableData2.get(i).getTime(), k, b)));
+                }
+
+                double[] variables = GaussMethod(new double[][]{
+                        {tableData2.size() - 2, sumX, lnPrice()},
+                        {sumX, sumSqrX, timeLnPrice()}
+                });
+
+                double a0 = Math.exp(variables[0]);
+                double a1 = Math.exp(variables[1]);
+                System.out.println(a0 + " " + a1);
+                XYChart.Series series4 = new XYChart.Series();
+                series4.setName("Показательная функция");
+
+                for (int i = 0; i < tableData2.size(); i++) {
+                    series4.getData().add(new XYChart.Data<>(tableData2.get(i).getTime(), exponentialFunction(tableData2.get(i).getTime(), a0, a1)));
                 }
 
 //                chart2.getData().addAll(series2,series3);
 
                 table2.setItems(tableData2);
                 table.setItems(tableData);
-                chart.getData().addAll(series, series2, series3);
+                chart.getData().addAll(series, series4);
 
             } catch (Exception e) {
                 System.out.println(e.getMessage());
@@ -255,6 +292,102 @@ public class HelloApplication extends Application {
 
         stage.setScene(scene);
         stage.show();
+    }
+
+
+    public static double determinant(double[][] matrix) {
+        int n = matrix.length;
+        if (n == 1) {
+            return matrix[0][0];
+        } else if (n == 2) {
+            return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
+        } else {
+            double det = 0;
+            for (int i = 0; i < n; i++) {
+                double[][] submatrix = getSubmatrix(matrix, 0, i);
+                det += Math.pow(-1, i) * matrix[0][i] * determinant(submatrix);
+            }
+            return det;
+        }
+    }
+
+
+    private static double[][] getSubmatrix(double[][] matrix, int excludingRow, int excludingCol) {
+        int n = matrix.length;
+        double[][] submatrix = new double[n - 1][n - 1];
+        int subRow = 0;
+        for (int i = 0; i < n; i++) {
+            if (i == excludingRow) continue;
+            int subCol = 0;
+            for (int j = 0; j < n; j++) {
+                if (j == excludingCol) continue;
+                submatrix[subRow][subCol] = matrix[i][j];
+                subCol++;
+            }
+            subRow++;
+        }
+        return submatrix;
+    }
+
+
+    private double[] SolveGauss(double[][] matrix) {
+        double[] answer = new double[matrix[0].length - 1];
+        AtomicBoolean noSolutionFlag = new AtomicBoolean(false);
+        Arrays.fill(answer, 1);
+        for (int i = matrix.length - 1; i >= 0; i--) {
+            int finalI = i;
+            double expression = matrix[i][matrix[0].length - 1] - (IntStream.range(i + 1, matrix[0].length - 1)
+                    .mapToDouble(j -> answer[j] * matrix[finalI][j]).sum());
+            if (expression == 0 && matrix[i][i] == 0) {
+                answer[i] = 1;
+            } else if (expression != 0 && matrix[i][i] == 0) {
+                noSolutionFlag.set(true);
+                break;
+            } else {
+                answer[i] = expression / matrix[i][i];
+            }
+        }
+        if (noSolutionFlag.get()) {
+            System.out.println("No solution found");
+        } else {
+            System.out.println("Ответ:");
+            printVector(answer);
+            return answer;
+        }
+        return new double[]{};
+    }
+
+    public double[] GaussMethod(double[][] matrix) {
+        //double[][] newMatrix = Arrays.stream(matrix).toArray(double[][]::new);
+        if (determinant(matrix) == 0) {
+            System.out.println("Определитель равен 0 => уравнение не " +
+                    "имеет решений или имеет бесконечно много решний");
+        }
+        double m;
+        int r = 0;
+        for (int k = 0; k < matrix[0].length; k++) {
+            for (int j = r + 1; j < matrix.length; j++) {
+                m = (-1) * matrix[j][k] / matrix[r][k];
+                System.out.println("Коэффициент = " + m);
+                for (int i = k; i < matrix.length + 1; ++i) {
+                    matrix[j][i] = matrix[r][i] * m + matrix[j][i];
+                }
+                printMatrix(matrix);
+                System.out.println();
+            }
+            r++;
+        }
+        return SolveGauss(matrix);
+    }
+
+    public static void printMatrix(double[][] matrix) {
+        Arrays.stream(matrix).forEach(i -> System.out.println(Arrays.toString(i)));
+    }
+
+    public static void printVector(double[] v) {
+        for (int i = 0; i < v.length; i++) {
+            System.out.print("x" + (i + 1) + " = " + v[i] + "\n");
+        }
     }
 
 
