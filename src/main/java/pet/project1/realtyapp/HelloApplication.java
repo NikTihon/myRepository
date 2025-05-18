@@ -20,22 +20,74 @@ import pet.project1.realtyapp.entity.MovingAverageTableEntity;
 import java.io.File;
 import java.io.FileReader;
 import java.util.Scanner;
+import java.util.stream.IntStream;
 
 public class HelloApplication extends Application {
     final NumberAxis xAxis = new NumberAxis();
     final NumberAxis yAxis = new NumberAxis();
 
+    final NumberAxis xAxis2 = new NumberAxis();
+    final NumberAxis yAxis2 = new NumberAxis();
+
     final LineChart<Number, Number> chart = new LineChart<>(xAxis, yAxis);
+    final LineChart<Number, Number> chart2 = new LineChart<>(xAxis2, yAxis2);
     final TableView<MainCharacteristicsTableEntity> table = new TableView<>();
     final TableView<MovingAverageTableEntity> table2 = new TableView<>();
     final ObservableList<MainCharacteristicsTableEntity> tableData = FXCollections.observableArrayList();
     final ObservableList<MovingAverageTableEntity> tableData2 = FXCollections.observableArrayList();
 
+    private double timeSum() {
+        return tableData2.stream().
+                skip(1).
+                limit(tableData2.size() - 2).
+                mapToDouble(MovingAverageTableEntity::getTime).sum();
+    }
+
+    private double timeSqrSum() {
+        return tableData2.stream().
+                skip(1).
+                limit(tableData2.size() - 2).
+                mapToDouble(i -> Math.pow(i.getTime(), 2)).
+                sum();
+    }
+
+
+    private double priceSum() {
+        return tableData2.stream()
+                .mapToDouble(MovingAverageTableEntity::getMovingAverage)
+                .sum();
+    }
+
+    private double timeAndPriceSum() {
+        return tableData2.stream()
+                .skip(1)
+                .limit(tableData2.size() - 2)
+                .mapToDouble(i -> i.getPrice() * i.getTime())
+                .sum();
+    }
+
+    private double getK(double sumX, double sumY, double sumXY, double sumSqrX) {
+        return ((tableData2.size() - 2) * sumXY - sumX * sumY) / ((tableData2.size() - 2) * sumSqrX - sumX * sumX);
+    }
+
+    private double getB(double k, double sumX, double sumY) {
+        return (sumY - k * sumX) / (tableData2.size() - 2);
+    }
+
+    private double linearFunction(double x, double k, double b) {
+        return k * x + b;
+    }
+
+
     private void initApp() {
         xAxis.setLabel("Время");
         yAxis.setLabel("Цена за м.кв., руб.");
 
+        xAxis2.setLabel("Время");
+        yAxis2.setLabel("Цена за м.кв., руб.");
+
         chart.setMinHeight(500);
+        chart2.setMinHeight(500);
         table.setMinHeight(500);
         table2.setMinHeight(500);
 
@@ -145,9 +197,31 @@ public class HelloApplication extends Application {
                     series.getData().add(new XYChart.Data<>(time, price));
                 }
 
+                double sumX = timeSum();
+                double sumY = priceSum();
+                double sumXY = timeAndPriceSum();
+                double sumSqrX = timeSqrSum();
+
+                System.out.println(sumX + " " + sumY + " " + sumXY + " " + sumSqrX);
+
+
+                double k = getK(sumX, sumY, sumXY, sumSqrX);
+                double b = getB(k, sumX, sumY);
+
+                System.out.println(k + " " + b);
+
+                XYChart.Series series3 = new XYChart.Series();
+
+                for (int i = 0; i < tableData2.size(); i++) {
+                    series3.getData().add(new XYChart.Data<>(tableData2.get(i).getTime(), linearFunction(tableData2.get(i).getTime(), k, b)));
+                }
+
+//                chart2.getData().addAll(series2,series3);
+
                 table2.setItems(tableData2);
                 table.setItems(tableData);
-                chart.getData().addAll(series, series2);
+                chart.getData().addAll(series, series2, series3);
+
             } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
@@ -156,7 +230,7 @@ public class HelloApplication extends Application {
         HBox fileHBox = new HBox();
         fileHBox.getChildren().addAll(fileField, fileButton, okButton);
 
-        VBox vbox = new VBox(fileHBox, table, table2, chart);
+        VBox vbox = new VBox(fileHBox, table, table2, chart, chart2);
 
         fileButton.setOnAction(actionEvent -> {
             FileChooser fileChooser = new FileChooser();
@@ -182,6 +256,7 @@ public class HelloApplication extends Application {
         stage.setScene(scene);
         stage.show();
     }
+
 
     public static void main(String[] args) {
         launch();
