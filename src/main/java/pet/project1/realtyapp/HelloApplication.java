@@ -33,8 +33,10 @@ public class HelloApplication extends Application {
 
     final LineChart<Number, Number> chart = new LineChart<>(xAxis, yAxis);
     final LineChart<Number, Number> chart2 = new LineChart<>(xAxis2, yAxis2);
+
     final TableView<MainCharacteristicsTableEntity> table = new TableView<>();
     final TableView<MovingAverageTableEntity> table2 = new TableView<>();
+
     final ObservableList<MainCharacteristicsTableEntity> tableData = FXCollections.observableArrayList();
     final ObservableList<MovingAverageTableEntity> tableData2 = FXCollections.observableArrayList();
 
@@ -53,6 +55,21 @@ public class HelloApplication extends Application {
                 sum();
     }
 
+    private double timePowSum(int pow) {
+        return tableData2.stream().
+                skip(1).
+                limit(tableData2.size() - 2).
+                mapToDouble(i -> Math.pow(i.getTime(), pow)).
+                sum();
+    }
+
+    private double timeSqrPriceSum() {
+        return tableData2.stream()
+                .skip(1)
+                .limit(tableData2.size() - 2)
+                .mapToDouble(i -> i.getMovingAverage() * Math.pow(i.getTime(), 2))
+                .sum();
+    }
 
     private double priceSum() {
         return tableData2.stream()
@@ -98,6 +115,10 @@ public class HelloApplication extends Application {
 
     private double exponentialFunction(double x, double a0, double a2) {
         return a0 * Math.pow(a2, x);
+    }
+
+    private double parabolaFunction(double x, double a0, double a1, double a2) {
+        return a0 + x * a1 + x * x * a2;
     }
 
     private void initApp() {
@@ -235,7 +256,8 @@ public class HelloApplication extends Application {
                 series3.setName("Линейная функция");
 
                 for (int i = 0; i < tableData2.size(); i++) {
-                    series3.getData().add(new XYChart.Data<>(tableData2.get(i).getTime(), linearFunction(tableData2.get(i).getTime(), k, b)));
+                    series3.getData().add(new XYChart.Data<>(tableData2.get(i).getTime(),
+                            linearFunction(tableData2.get(i).getTime(), k, b)));
                 }
 
                 double[] variables = GaussMethod(new double[][]{
@@ -250,14 +272,30 @@ public class HelloApplication extends Application {
                 series4.setName("Показательная функция");
 
                 for (int i = 0; i < tableData2.size(); i++) {
-                    series4.getData().add(new XYChart.Data<>(tableData2.get(i).getTime(), exponentialFunction(tableData2.get(i).getTime(), a0, a1)));
+                    series4.getData().add(new XYChart.Data<>(tableData2.get(i).getTime(),
+                            exponentialFunction(tableData2.get(i).getTime(), a0, a1)));
                 }
+
+                double[] variables2 = GaussMethod(new double[][]{
+                        {tableData2.size()-2, sumX, sumSqrX, sumY},
+                        {sumX, sumSqrX, timePowSum(3), sumXY},
+                        {sumSqrX, timePowSum(3), timePowSum(4), timeSqrPriceSum()}
+                });
+
+                XYChart.Series series5 = new XYChart.Series();
+                series5.setName("Порабола");
+
+                for(int i = 0;i < tableData2.size(); i++){
+                    series5.getData().add(new XYChart.Data<>(tableData2.get(i).getTime(),
+                            parabolaFunction(tableData2.get(i).getTime(), variables2[0], variables2[1], variables2[2])));
+                }
+
 
 //                chart2.getData().addAll(series2,series3);
 
                 table2.setItems(tableData2);
                 table.setItems(tableData);
-                chart.getData().addAll(series, series4);
+                chart.getData().addAll(series, series2, series5);
 
             } catch (Exception e) {
                 System.out.println(e.getMessage());
