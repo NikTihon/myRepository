@@ -18,15 +18,15 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import pet.project1.realtyapp.entity.MainCharacteristicsTableEntity;
 import pet.project1.realtyapp.entity.MovingAverageTableEntity;
+import pet.project1.realtyapp.entity.TableEntity;
 
-import java.io.File;
 import java.io.FileReader;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
-import java.util.function.Function;
+
 import java.util.stream.IntStream;
 
 
@@ -130,8 +130,10 @@ public class HelloApplication extends Application {
 
         chart.setMinHeight(500);
         chart2.setMinHeight(500);
-        mainCharacteristicTable.setMinHeight(500);
-        movingAverageTable.setMinHeight(500);
+        chart.setMinWidth(500);
+        chart2.setMinWidth(500);
+
+        movingAverageTable.prefWidthProperty().bind(mainCharacteristicTable.widthProperty());
 
         TableColumn<MainCharacteristicsTableEntity, String> time = new TableColumn<>("Время");
         time.setCellValueFactory(new PropertyValueFactory<>("time"));
@@ -139,37 +141,51 @@ public class HelloApplication extends Application {
         TableColumn<MainCharacteristicsTableEntity, String> price = new TableColumn<>("Цена");
         price.setCellValueFactory(new PropertyValueFactory<>("price"));
 
-        TableColumn<MainCharacteristicsTableEntity, String> chainAbsoluteGrowth = new TableColumn<>("Абсолютный прирост цепной");
+        TableColumn<MainCharacteristicsTableEntity, String> chainAbsoluteGrowth =
+                new TableColumn<>("Абсолютный\nприрост\nцепной");
         chainAbsoluteGrowth.setCellValueFactory(new PropertyValueFactory<>("chainAbsoluteGrowth"));
 
-        TableColumn<MainCharacteristicsTableEntity, String> basicAbsoluteGrowth = new TableColumn<>("Абсолютный прирост базисный");
+        TableColumn<MainCharacteristicsTableEntity, String> basicAbsoluteGrowth =
+                new TableColumn<>("Абсолютный\nприрост\nбазисный");
         basicAbsoluteGrowth.setCellValueFactory(new PropertyValueFactory<>("basicAbsoluteGrowth"));
 
-        TableColumn<MainCharacteristicsTableEntity, String> chainGrowthRates = new TableColumn<>("Темпы роста цепные");
+        TableColumn<MainCharacteristicsTableEntity, String> chainGrowthRates =
+                new TableColumn<>("Темпы\nроста\nцепные");
         chainGrowthRates.setCellValueFactory(new PropertyValueFactory<>("chainGrowthRates"));
 
-        TableColumn<MainCharacteristicsTableEntity, String> basicGrowthRates = new TableColumn<>("Темпы роста базисные");
+        TableColumn<MainCharacteristicsTableEntity, String> basicGrowthRates =
+                new TableColumn<>("Темпы\nроста\nбазисные");
         basicGrowthRates.setCellValueFactory(new PropertyValueFactory<>("basicGrowthRates"));
 
-        TableColumn<MainCharacteristicsTableEntity, String> chainGrowthRates2 = new TableColumn<>("Темпы прироста цепные");
+        TableColumn<MainCharacteristicsTableEntity, String> chainGrowthRates2 =
+                new TableColumn<>("Темпы\nприроста\nцепные");
         chainGrowthRates2.setCellValueFactory(new PropertyValueFactory<>("chainGrowthRates2"));
 
-        TableColumn<MainCharacteristicsTableEntity, String> basicGrowthRates2 = new TableColumn<>("Темпы прироста базисные");
+        TableColumn<MainCharacteristicsTableEntity, String> basicGrowthRates2 =
+                new TableColumn<>("Темпы\nприроста\nбазисные");
         basicGrowthRates2.setCellValueFactory(new PropertyValueFactory<>("basicGrowthRates2"));
 
-        TableColumn<MainCharacteristicsTableEntity, String> absoluteValue = new TableColumn<>("Абсолютное значение");
+        TableColumn<MainCharacteristicsTableEntity, String> absoluteValue =
+                new TableColumn<>("Абсолютное\nзначение");
         absoluteValue.setCellValueFactory(new PropertyValueFactory<>("absoluteValue"));
 
-        TableColumn<MainCharacteristicsTableEntity, String> relativeAcceleration = new TableColumn<>("Относительное ускорение");
+        TableColumn<MainCharacteristicsTableEntity, String> relativeAcceleration =
+                new TableColumn<>("Относительное\nускорение");
         relativeAcceleration.setCellValueFactory(new PropertyValueFactory<>("relativeAcceleration"));
 
-        TableColumn<MainCharacteristicsTableEntity, String> advanceRatio = new TableColumn<>("Коэффициент опережения");
+        TableColumn<MainCharacteristicsTableEntity, String> advanceRatio =
+                new TableColumn<>("Коэффициент\nопережения");
         advanceRatio.setCellValueFactory(new PropertyValueFactory<>("advanceRatio"));
+
+        this.setStandartPropertyAll(time, price, chainAbsoluteGrowth, basicAbsoluteGrowth, chainGrowthRates,
+                basicGrowthRates, chainGrowthRates2, basicGrowthRates2,
+                absoluteValue, relativeAcceleration, advanceRatio);
 
         mainCharacteristicTable.getColumns().addAll(List.of(
                 time, price, chainAbsoluteGrowth, basicAbsoluteGrowth, chainGrowthRates,
                 basicGrowthRates, chainGrowthRates2, basicGrowthRates2,
                 absoluteValue, relativeAcceleration, advanceRatio));
+
 
         TableColumn<MovingAverageTableEntity, String> time1 = new TableColumn<>("Время");
         time1.setCellValueFactory(new PropertyValueFactory<>("time"));
@@ -177,24 +193,34 @@ public class HelloApplication extends Application {
         TableColumn<MovingAverageTableEntity, String> price1 = new TableColumn<>("Цена");
         price1.setCellValueFactory(new PropertyValueFactory<>("price"));
 
-        TableColumn<MovingAverageTableEntity, String> movingAverage = new TableColumn<>("Скользящая средняя из трёх уровней");
+        TableColumn<MovingAverageTableEntity, String> movingAverage = new TableColumn<>("Скользящая\nсредняя\nизтрёх\nуровней");
         movingAverage.setCellValueFactory(new PropertyValueFactory<>("movingAverage"));
 
+        this.setStandartPropertyAll(time1, price1, movingAverage);
+
         movingAverageTable.getColumns().addAll(List.of(time1, price1, movingAverage));
+    }
+
+    @SafeVarargs
+    private void setStandartPropertyAll(TableColumn<? extends TableEntity, String>... columns) {
+        for (TableColumn<? extends TableEntity, String> column : columns) {
+            column.setMinWidth(50.0);
+            column.setMaxWidth(1000.0);
+        }
     }
 
     @Override
     public void start(Stage stage) {
         Group root = new Group();
-        Scene scene = new Scene(root, 1000, 1000);
+        Scene scene = new Scene(root, 1920, 1080);
 
         initApp();
 
         Button fileButton = new Button("Выбрать файл");
         fileButton.setOnAction(actionEvent -> {
             FileChooser fileChooser = new FileChooser();
-            File file = fileChooser.showOpenDialog(stage);
-            fileField.setText(file.getAbsolutePath());
+            String file = fileChooser.showOpenDialog(stage).getAbsolutePath();
+            fileField.setText(file);
         });
 
         Button okButton = new Button("Ок");
@@ -203,25 +229,54 @@ public class HelloApplication extends Application {
         HBox fileHBox = new HBox();
         fileHBox.getChildren().addAll(fileField, fileButton, okButton);
 
-        VBox vbox = new VBox(fileHBox, mainCharacteristicTable, movingAverageTable, chart, chart2);
+        VBox vbox = new VBox(fileHBox);
+
+        vbox.getChildren().add(addBlock(
+                new Label[]{new Label("Основные характеристики")},
+                mainCharacteristicTable,
+                chart,
+                new Label[]{new Label("Тут тоже")})
+        );
+
+        vbox.getChildren().addAll(addBlock(
+                new Label[]{new Label("Скользящая средняя")},
+                movingAverageTable,
+                chart2,
+                new Label[]{})
+        );
+
+//        vbox.setMinHeight(1920);
+//        vbox.setMinWidth(1080);
 
         ScrollPane scrollPane = new ScrollPane(vbox);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setFitToHeight(true);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
-        scrollPane.setFocusTraversable(true);
-        scrollPane.requestFocus();
-        scrollPane.setMaxHeight(900);
-        scrollPane.setMaxWidth(900);
+        scrollPane.prefWidthProperty().bind(stage.widthProperty());
+        scrollPane.prefHeightProperty().bind(stage.heightProperty());
+//        scrollPane.setFitToWidth(true);
+//        scrollPane.setFitToHeight(true);
+//        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+//        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+//        scrollPane.setFocusTraversable(true);
+//        scrollPane.requestFocus();
+//        scrollPane.setMinHeight(3000);
+//        scrollPane.setMinWidth(3000);
 
 
         root.getChildren().addAll(scrollPane);
         stage.setTitle("Приложение для анализа и прогнозирования рынка недвижимости");
-        stage.setMaxWidth(900);
+
 
         stage.setScene(scene);
         stage.show();
+    }
+
+    public VBox addBlock(Label[] label1, TableView<? extends TableEntity> table, LineChart<Number, Number> lineChart, Label[] label2) {
+        VBox vBox = new VBox();
+        HBox hBox = new HBox();
+        hBox.getChildren().addAll(table, lineChart);
+        vBox.getChildren().addAll(label1);
+        vBox.getChildren().addAll(hBox);
+        vBox.getChildren().addAll(label2);
+        return vBox;
     }
 
 
@@ -363,7 +418,6 @@ public class HelloApplication extends Application {
                         }
                     }
                     graphPoints.add(new XYChart.Data<>(time, price));
-
                 }
 
                 XYChart.Series<Number, Number> series = new XYChart.Series<>(graphPoints);
@@ -409,12 +463,15 @@ public class HelloApplication extends Application {
 
                 plot(parabolaFunctionPoints, parabolaFunction(), variables2);
                 XYChart.Series<Number, Number> series5 = new XYChart.Series<>(parabolaFunctionPoints);
-                series5.setName("Порабола");
+                series5.setName("Парабола");
 
 
                 movingAverageTable.setItems(movingTableData);
                 mainCharacteristicTable.setItems(mainTableData);
-                chart.getData().addAll(List.of(series, series2, series3, series4, series5));
+                chart.getData().add(series);
+
+                XYChart.Series<Number, Number> series1 = new XYChart.Series<>();
+                chart2.getData().addAll(List.of(series1, series2));
 
             } catch (Exception e) {
                 System.out.println(e.getMessage());
@@ -423,13 +480,13 @@ public class HelloApplication extends Application {
     }
 
     private void plot(ObservableList<XYChart.Data<Number, Number>> points,
-                      BiFunction<Double, double[], Double> function, double[] variables) {
+                      BiFunction<Double, double[], Double> function,
+                      double[] variables) {
         for (MovingAverageTableEntity movingTableDatum : movingTableData) {
             points.add(new XYChart.Data<>(movingTableDatum.getTime(),
                     function.apply(movingTableDatum.getTime(), variables)));
         }
     }
-
 
     public static void main(String[] args) {
         launch();
