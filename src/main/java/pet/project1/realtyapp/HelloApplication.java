@@ -25,6 +25,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 
 
@@ -43,6 +45,12 @@ public class HelloApplication extends Application {
 
     private final ObservableList<MainCharacteristicsTableEntity> mainTableData = FXCollections.observableArrayList();
     private final ObservableList<MovingAverageTableEntity> movingTableData = FXCollections.observableArrayList();
+
+    private final ObservableList<XYChart.Data<Number, Number>> graphPoints = FXCollections.observableArrayList();
+    private final ObservableList<XYChart.Data<Number, Number>> moveAveragePoints = FXCollections.observableArrayList();
+    private final ObservableList<XYChart.Data<Number, Number>> linearFunctionPoints = FXCollections.observableArrayList();
+    private final ObservableList<XYChart.Data<Number, Number>> exponentialFunctionPoints = FXCollections.observableArrayList();
+    private final ObservableList<XYChart.Data<Number, Number>> parabolaFunctionPoints = FXCollections.observableArrayList();
 
     private final TextField fileField = new TextField();
 
@@ -85,10 +93,6 @@ public class HelloApplication extends Application {
         return (sumY - k * sumX) / (movingTableData.size() - 2);
     }
 
-    private double linearFunction(double x, double k, double b) {
-        return k * x + b;
-    }
-
     private double lnPriceSum() {
         return movingTableData.stream()
                 .skip(1)
@@ -105,12 +109,16 @@ public class HelloApplication extends Application {
                 .sum();
     }
 
-    private double exponentialFunction(double x, double a0, double a2) {
-        return a0 * Math.pow(a2, x);
+    private BiFunction<Double, double[], Double> linearFunction() {
+        return (x, coefficients) -> coefficients[0] * x + coefficients[1];
     }
 
-    private double parabolaFunction(double x, double a0, double a1, double a2) {
-        return a0 + x * a1 + x * x * a2;
+    private BiFunction<Double, double[], Double> exponentialFunction() {
+        return (x, coefficients) -> coefficients[0] * Math.pow(coefficients[1], x);
+    }
+
+    private BiFunction<Double, double[], Double> parabolaFunction() {
+        return (x, coefficients) -> coefficients[0] + x * coefficients[1] + x * x * coefficients[2];
     }
 
     private void initApp() {
@@ -315,10 +323,7 @@ public class HelloApplication extends Application {
     public EventHandler<ActionEvent> okButtonActionEvent() {
         return actionEvent -> {
             try (Scanner sc = new Scanner(new FileReader(fileField.getText()))) {
-                XYChart.Series<Number, Number> series = new XYChart.Series<>();
-                XYChart.Series<Number, Number> series2 = new XYChart.Series<>();
-                series2.setName("Скользящая средняя из трех уровней");
-                series.setName("График");
+
                 while (sc.hasNextInt()) {
                     int time = sc.nextInt();
                     double price = sc.nextDouble();
@@ -330,8 +335,9 @@ public class HelloApplication extends Application {
                         double movingAverage = (movingTableData.get(movingTableData.size() - 3).getPrice() +
                                 movingTableData.get(movingTableData.size() - 2).getPrice() +
                                 movingTableData.getLast().getPrice()) / 3;
+
                         movingTableData.get(tableData2Size - 1).setMovingAverage(movingAverage);
-                        series2.getData().add(new XYChart.Data<>(movingTableData.get(tableData2Size - 1).getTime(), movingAverage));
+                        moveAveragePoints.add(new XYChart.Data<>(movingTableData.get(tableData2Size - 1).getTime(), movingAverage));
                     }
 
                     if (mainTableData.isEmpty()) {
@@ -356,8 +362,14 @@ public class HelloApplication extends Application {
                                     chainGrowthRates, basicGrowthRates, chainGrowthRates2, basicGrowthRates2, absoluteValue));
                         }
                     }
-                    series.getData().add(new XYChart.Data<>(time, price));
+                    graphPoints.add(new XYChart.Data<>(time, price));
+
                 }
+
+                XYChart.Series<Number, Number> series = new XYChart.Series<>(graphPoints);
+                XYChart.Series<Number, Number> series2 = new XYChart.Series<>(moveAveragePoints);
+                series2.setName("Скользящая средняя из трех уровней");
+                series.setName("График");
 
                 double sumX = timePowSum(1);
                 double sumY = priceSum();
@@ -371,29 +383,23 @@ public class HelloApplication extends Application {
 
                 System.out.println(k + " " + b);
 
-                XYChart.Series<Number, Number> series3 = new XYChart.Series<>();
+                plot(linearFunctionPoints, linearFunction(), new double[]{k, b});
+                XYChart.Series<Number, Number> series3 = new XYChart.Series<>(linearFunctionPoints);
                 series3.setName("Линейная функция");
-
-                for (MovingAverageTableEntity movingTableDatum : movingTableData) {
-                    series3.getData().add(new XYChart.Data<>(movingTableDatum.getTime(),
-                            linearFunction(movingTableDatum.getTime(), k, b)));
-                }
 
                 double[] variables = GaussMethod(new double[][]{
                         {movingTableData.size() - 2, sumX, lnPriceSum()},
                         {sumX, sumSqrX, timeLnPriceSum()}
                 });
 
-                double a0 = Math.exp(variables[0]);
-                double a1 = Math.exp(variables[1]);
-                System.out.println(a0 + " " + a1);
-                XYChart.Series<Number, Number> series4 = new XYChart.Series<>();
+                plot(exponentialFunctionPoints, exponentialFunction(),
+                        Arrays.stream(variables)
+                                .map(Math::exp)
+                                .peek(System.out::println)
+                                .toArray()
+                );
+                XYChart.Series<Number, Number> series4 = new XYChart.Series<>(exponentialFunctionPoints);
                 series4.setName("Показательная функция");
-
-                for (MovingAverageTableEntity movingTableDatum : movingTableData) {
-                    series4.getData().add(new XYChart.Data<>(movingTableDatum.getTime(),
-                            exponentialFunction(movingTableDatum.getTime(), a0, a1)));
-                }
 
                 double[] variables2 = GaussMethod(new double[][]{
                         {movingTableData.size() - 2, sumX, sumSqrX, sumY},
@@ -401,15 +407,10 @@ public class HelloApplication extends Application {
                         {sumSqrX, timePowSum(3), timePowSum(4), timeSqrPriceSum()}
                 });
 
-                XYChart.Series<Number, Number> series5 = new XYChart.Series<>();
+                plot(parabolaFunctionPoints, parabolaFunction(), variables2);
+                XYChart.Series<Number, Number> series5 = new XYChart.Series<>(parabolaFunctionPoints);
                 series5.setName("Порабола");
 
-                for (MovingAverageTableEntity movingTableDatum : movingTableData) {
-                    series5.getData().add(new XYChart.Data<>(movingTableDatum.getTime(),
-                            parabolaFunction(movingTableDatum.getTime(), variables2[0], variables2[1], variables2[2])));
-                }
-
-//                chart2.getData().addAll(series2);
 
                 movingAverageTable.setItems(movingTableData);
                 mainCharacteristicTable.setItems(mainTableData);
@@ -419,6 +420,14 @@ public class HelloApplication extends Application {
                 System.out.println(e.getMessage());
             }
         };
+    }
+
+    private void plot(ObservableList<XYChart.Data<Number, Number>> points,
+                      BiFunction<Double, double[], Double> function, double[] variables) {
+        for (MovingAverageTableEntity movingTableDatum : movingTableData) {
+            points.add(new XYChart.Data<>(movingTableDatum.getTime(),
+                    function.apply(movingTableDatum.getTime(), variables)));
+        }
     }
 
 
