@@ -16,6 +16,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import pet.project1.realtyapp.entity.FunctionTableEntity;
 import pet.project1.realtyapp.entity.MainCharacteristicsTableEntity;
 import pet.project1.realtyapp.entity.MovingAverageTableEntity;
 import pet.project1.realtyapp.entity.TableEntity;
@@ -31,29 +32,58 @@ import java.util.stream.IntStream;
 
 
 public class HelloApplication extends Application {
-    private final NumberAxis xAxis = new NumberAxis();
-    private final NumberAxis yAxis = new NumberAxis();
 
-    private final NumberAxis xAxis2 = new NumberAxis();
-    private final NumberAxis yAxis2 = new NumberAxis();
-
-    private final LineChart<Number, Number> chart = new LineChart<>(xAxis, yAxis);
-    private final LineChart<Number, Number> chart2 = new LineChart<>(xAxis2, yAxis2);
+    private final LineChart<Number, Number> chart =
+            new LineChart<>(setAxisProperties(new NumberAxis()), setAxisProperties(new NumberAxis()));
+    private final LineChart<Number, Number> chart2 =
+            new LineChart<>(setAxisProperties(new NumberAxis()), setAxisProperties(new NumberAxis()));
+    private final LineChart<Number, Number> chart3 =
+            new LineChart<>(setAxisProperties(new NumberAxis()), setAxisProperties(new NumberAxis()));
+    private final LineChart<Number, Number> chart4 =
+            new LineChart<>(setAxisProperties(new NumberAxis()), setAxisProperties(new NumberAxis()));
+    private final LineChart<Number, Number> chart5 =
+            new LineChart<>(setAxisProperties(new NumberAxis()), setAxisProperties(new NumberAxis()));
 
     private final TableView<MainCharacteristicsTableEntity> mainCharacteristicTable = new TableView<>();
     private final TableView<MovingAverageTableEntity> movingAverageTable = new TableView<>();
+    private final TableView<FunctionTableEntity> linearTable = new TableView<>();
+    private final TableView<FunctionTableEntity> exponentialTable = new TableView<>();
+    private final TableView<FunctionTableEntity> parabolaTable = new TableView<>();
 
-    private final ObservableList<MainCharacteristicsTableEntity> mainTableData = FXCollections.observableArrayList();
-    private final ObservableList<MovingAverageTableEntity> movingTableData = FXCollections.observableArrayList();
+    private final ObservableList<MainCharacteristicsTableEntity> mainTableData =
+            FXCollections.observableArrayList();
+    private final ObservableList<MovingAverageTableEntity> movingTableData =
+            FXCollections.observableArrayList();
+    private final ObservableList<FunctionTableEntity> linearTableData =
+            FXCollections.observableArrayList();
+    private final ObservableList<FunctionTableEntity> exponentialTableData =
+            FXCollections.observableArrayList();
+    private final ObservableList<FunctionTableEntity> parabolaTableData =
+            FXCollections.observableArrayList();
 
-    private final ObservableList<XYChart.Data<Number, Number>> graphPoints = FXCollections.observableArrayList();
-    private final ObservableList<XYChart.Data<Number, Number>> moveAveragePoints = FXCollections.observableArrayList();
-    private final ObservableList<XYChart.Data<Number, Number>> linearFunctionPoints = FXCollections.observableArrayList();
-    private final ObservableList<XYChart.Data<Number, Number>> exponentialFunctionPoints = FXCollections.observableArrayList();
-    private final ObservableList<XYChart.Data<Number, Number>> parabolaFunctionPoints = FXCollections.observableArrayList();
+    private final ObservableList<XYChart.Data<Number, Number>> graphPoints =
+            FXCollections.observableArrayList();
+    private final ObservableList<XYChart.Data<Number, Number>> moveAveragePoints =
+            FXCollections.observableArrayList();
+    private final ObservableList<XYChart.Data<Number, Number>> linearFunctionPoints
+            = FXCollections.observableArrayList();
+    private final ObservableList<XYChart.Data<Number, Number>> exponentialFunctionPoints =
+            FXCollections.observableArrayList();
+    private final ObservableList<XYChart.Data<Number, Number>> parabolaFunctionPoints =
+            FXCollections.observableArrayList();
+
+    private double[] linearVar;
+    private double[] exponentialVar;
+    private double[] parabolaVar;
 
     private final TextField fileField = new TextField();
 
+
+    private NumberAxis setAxisProperties(NumberAxis axis) {
+        axis.setLabel("Время");
+        axis.setLabel("Цена за м.кв., руб.");
+        return axis;
+    }
 
     private double timePowSum(int pow) {
         return movingTableData.stream().
@@ -122,18 +152,16 @@ public class HelloApplication extends Application {
     }
 
     private void initApp() {
-        xAxis.setLabel("Время");
-        yAxis.setLabel("Цена за м.кв., руб.");
-
-        xAxis2.setLabel("Время");
-        yAxis2.setLabel("Цена за м.кв., руб.");
-
-        chart.setMinHeight(500);
-        chart2.setMinHeight(500);
-        chart.setMinWidth(500);
-        chart2.setMinWidth(500);
+        chart.setMinSize(500, 500);
+        chart2.setMinSize(500, 500);
+        chart3.setMinSize(500, 500);
+        chart4.setMinSize(500, 500);
+        chart5.setMinSize(500, 500);
 
         movingAverageTable.prefWidthProperty().bind(mainCharacteristicTable.widthProperty());
+        linearTable.prefWidthProperty().bind(mainCharacteristicTable.widthProperty());
+        exponentialTable.prefWidthProperty().bind(mainCharacteristicTable.widthProperty());
+        parabolaTable.prefWidthProperty().bind(mainCharacteristicTable.widthProperty());
 
         TableColumn<MainCharacteristicsTableEntity, String> time = new TableColumn<>("Время");
         time.setCellValueFactory(new PropertyValueFactory<>("time"));
@@ -196,16 +224,66 @@ public class HelloApplication extends Application {
         TableColumn<MovingAverageTableEntity, String> movingAverage = new TableColumn<>("Скользящая\nсредняя\nизтрёх\nуровней");
         movingAverage.setCellValueFactory(new PropertyValueFactory<>("movingAverage"));
 
+
+        TableColumn<FunctionTableEntity, String> time2 = new TableColumn<>("Время");
+        time2.setCellValueFactory(new PropertyValueFactory<>("time"));
+
+        TableColumn<FunctionTableEntity, String> price2 = new TableColumn<>("Цена");
+        price2.setCellValueFactory(new PropertyValueFactory<>("price"));
+
+        TableColumn<FunctionTableEntity, String> lvl = new TableColumn<>("Вычисленный\nуровень");
+        lvl.setCellValueFactory(new PropertyValueFactory<>("lvl"));
+
+        TableColumn<FunctionTableEntity, String> error = new TableColumn<>("Отклонение");
+        error.setCellValueFactory(new PropertyValueFactory<>("error"));
+
+        TableColumn<FunctionTableEntity, String> time3 = new TableColumn<>("Время");
+        time3.setCellValueFactory(new PropertyValueFactory<>("time"));
+
+        TableColumn<FunctionTableEntity, String> price3 = new TableColumn<>("Цена");
+        price3.setCellValueFactory(new PropertyValueFactory<>("price"));
+
+        TableColumn<FunctionTableEntity, String> lvl2 = new TableColumn<>("Вычисленный\nуровень");
+        lvl2.setCellValueFactory(new PropertyValueFactory<>("lvl"));
+
+        TableColumn<FunctionTableEntity, String> error2 = new TableColumn<>("Отклонение");
+        error2.setCellValueFactory(new PropertyValueFactory<>("error"));
+
+        TableColumn<FunctionTableEntity, String> time4 = new TableColumn<>("Время");
+        time4.setCellValueFactory(new PropertyValueFactory<>("time"));
+
+        TableColumn<FunctionTableEntity, String> price4 = new TableColumn<>("Цена");
+        price4.setCellValueFactory(new PropertyValueFactory<>("price"));
+
+        TableColumn<FunctionTableEntity, String> lvl3 = new TableColumn<>("Вычисленный\nуровень");
+        lvl3.setCellValueFactory(new PropertyValueFactory<>("lvl"));
+
+        TableColumn<FunctionTableEntity, String> error3 = new TableColumn<>("Отклонение");
+        error3.setCellValueFactory(new PropertyValueFactory<>("error"));
+
+        linearTable.getColumns().addAll(List.of(
+                time2, price2, lvl, error
+        ));
+
+        exponentialTable.getColumns().addAll(List.of(
+                time3, price3, lvl2, error2
+        ));
+
+        parabolaTable.getColumns().addAll(List.of(
+                time4, price4, lvl3, error3
+        ));
+
         this.setStandartPropertyAll(time1, price1, movingAverage);
 
         movingAverageTable.getColumns().addAll(List.of(time1, price1, movingAverage));
     }
 
+
     @SafeVarargs
     private void setStandartPropertyAll(TableColumn<? extends TableEntity, String>... columns) {
         for (TableColumn<? extends TableEntity, String> column : columns) {
             column.setMinWidth(50.0);
-            column.setMaxWidth(1000.0);
+            column.setMaxWidth(150.0);
         }
     }
 
@@ -214,7 +292,7 @@ public class HelloApplication extends Application {
         Group root = new Group();
         Scene scene = new Scene(root, 1920, 1080);
 
-        initApp();
+        this.initApp();
 
         Button fileButton = new Button("Выбрать файл");
         fileButton.setOnAction(actionEvent -> {
@@ -231,19 +309,45 @@ public class HelloApplication extends Application {
 
         VBox vbox = new VBox(fileHBox);
 
+
         vbox.getChildren().add(addBlock(
                 new Label[]{new Label("Основные характеристики")},
                 mainCharacteristicTable,
                 chart,
-                new Label[]{new Label("Тут тоже")})
-        );
+                new Label[]{}
+        ));
 
-        vbox.getChildren().addAll(addBlock(
+        vbox.getChildren().add(addBlock(
                 new Label[]{new Label("Скользящая средняя")},
                 movingAverageTable,
                 chart2,
-                new Label[]{})
-        );
+                new Label[]{}
+        ));
+
+        vbox.getChildren().add(addBlock(
+                new Label[]{
+                        new Label("Прямая"),
+                        new Label("Уравнение прямой: y = " + linearVar[0] + "x + " + linearVar[1]),
+                },
+                linearTable,
+                chart3,
+                new Label[]{new Label()}
+        ));
+
+        vbox.getChildren().add(addBlock(
+                new Label[]{new Label("Показательная")},
+                exponentialTable,
+                chart4,
+                new Label[]{new Label()}
+        ));
+
+        vbox.getChildren().add(addBlock(
+                new Label[]{new Label("Парабола")},
+                parabolaTable,
+                chart5,
+                new Label[]{new Label()}
+        ));
+
 
 //        vbox.setMinHeight(1920);
 //        vbox.setMinWidth(1080);
@@ -262,14 +366,165 @@ public class HelloApplication extends Application {
 
 
         root.getChildren().addAll(scrollPane);
+
         stage.setTitle("Приложение для анализа и прогнозирования рынка недвижимости");
-
-
         stage.setScene(scene);
         stage.show();
     }
 
-    public VBox addBlock(Label[] label1, TableView<? extends TableEntity> table, LineChart<Number, Number> lineChart, Label[] label2) {
+    public EventHandler<ActionEvent> okButtonActionEvent() {
+        return actionEvent -> {
+            try (Scanner sc = new Scanner(new FileReader(fileField.getText()))) {
+                while (sc.hasNextInt()) {
+                    int time = sc.nextInt();
+                    double price = sc.nextDouble();
+
+                    int tableData2Size = movingTableData.size();
+                    movingTableData.add(new MovingAverageTableEntity(time, price));
+
+                    if (movingTableData.size() >= 3) {
+                        double movingAverage = (movingTableData.get(movingTableData.size() - 3).getPrice() +
+                                movingTableData.get(movingTableData.size() - 2).getPrice() +
+                                movingTableData.getLast().getPrice()) / 3;
+
+                        movingTableData.get(tableData2Size - 1).setMovingAverage(movingAverage);
+                        moveAveragePoints.add(new XYChart.Data<>(movingTableData.get(tableData2Size - 1).getTime(), movingAverage));
+                    }
+
+                    if (mainTableData.isEmpty()) {
+                        mainTableData.add(new MainCharacteristicsTableEntity(time, price));
+                    } else {
+                        double chainAbsoluteGrowth = price - mainTableData.getLast().getPrice();
+                        double basicAbsoluteGrowth = price - mainTableData.getFirst().getPrice();
+                        double chainGrowthRates = (price / mainTableData.getLast().getPrice()) * 100;
+                        double basicGrowthRates = (price / mainTableData.getFirst().getPrice()) * 100;
+                        double chainGrowthRates2 = chainAbsoluteGrowth / mainTableData.getLast().getPrice();
+                        double basicGrowthRates2 = basicAbsoluteGrowth / mainTableData.getFirst().getPrice();
+                        double absoluteValue = 0.01 * mainTableData.getLast().getPrice();
+
+                        if (mainTableData.size() >= 2) {
+                            double relativeAcceleration = (chainGrowthRates - mainTableData.getLast().getChainGrowthRates());
+                            double advanceRatio = chainGrowthRates / mainTableData.getLast().getChainGrowthRates();
+                            mainTableData.add(new MainCharacteristicsTableEntity(time, price, chainAbsoluteGrowth, basicAbsoluteGrowth,
+                                    chainGrowthRates, basicGrowthRates, chainGrowthRates2, basicGrowthRates2,
+                                    absoluteValue, relativeAcceleration, advanceRatio));
+                        } else {
+                            mainTableData.add(new MainCharacteristicsTableEntity(time, price, chainAbsoluteGrowth, basicAbsoluteGrowth,
+                                    chainGrowthRates, basicGrowthRates, chainGrowthRates2, basicGrowthRates2, absoluteValue));
+                        }
+                    }
+                    graphPoints.add(new XYChart.Data<>(time, price));
+                }
+
+                XYChart.Series<Number, Number> series = new XYChart.Series<>(graphPoints);
+                XYChart.Series<Number, Number> series2 = new XYChart.Series<>(moveAveragePoints);
+                series2.setName("Скользящая средняя из трех уровней");
+                series.setName("График");
+
+                double sumX = timePowSum(1);
+                double sumY = priceSum();
+                double sumXY = timeAndPriceSum();
+                double sumSqrX = timePowSum(2);
+
+                double k = getK(sumX, sumY, sumXY, sumSqrX);
+                double b = getB(k, sumX, sumY);
+
+                linearVar = new double[]{k, b};
+
+                plot(linearFunctionPoints, linearFunction(), new double[]{k, b});
+                XYChart.Series<Number, Number> series3 = new XYChart.Series<>(linearFunctionPoints);
+                series3.setName("Линейная функция");
+
+                exponentialVar = GaussMethod(new double[][]{
+                        {movingTableData.size() - 2, sumX, lnPriceSum()},
+                        {sumX, sumSqrX, timeLnPriceSum()}
+                });
+
+                plot(exponentialFunctionPoints, exponentialFunction(),
+                        Arrays.stream(exponentialVar)
+                                .map(Math::exp)
+                                .peek(System.out::println)
+                                .toArray()
+                );
+                XYChart.Series<Number, Number> series4 = new XYChart.Series<>(exponentialFunctionPoints);
+                series4.setName("Показательная функция");
+
+                parabolaVar= GaussMethod(new double[][]{
+                        {movingTableData.size() - 2, sumX, sumSqrX, sumY},
+                        {sumX, sumSqrX, timePowSum(3), sumXY},
+                        {sumSqrX, timePowSum(3), timePowSum(4), timeSqrPriceSum()}
+                });
+
+                plot(parabolaFunctionPoints, parabolaFunction(), parabolaVar);
+                XYChart.Series<Number, Number> series5 = new XYChart.Series<>(parabolaFunctionPoints);
+                series5.setName("Парабола");
+
+                for (int i = 0; i < mainTableData.size(); i++) {
+                    double time = mainTableData.get(i).getTime();
+                    double price = mainTableData.get(i).getPrice();
+
+                    linearTableData.add(new FunctionTableEntity(
+                            time,
+                            price,
+                            (double) linearFunctionPoints.get(i).getYValue(),
+                            Math.pow((price - (double) linearFunctionPoints.get(i).getYValue()), 2))
+                    );
+
+                    exponentialTableData.add(new FunctionTableEntity(
+                            time,
+                            price,
+                            (double) exponentialFunctionPoints.get(i).getYValue(),
+                            Math.pow((price - (double) exponentialFunctionPoints.get(i).getYValue()), 2))
+                    );
+
+                    parabolaTableData.add(new FunctionTableEntity(
+                            time,
+                            price,
+                            (double) parabolaFunctionPoints.get(i).getYValue(),
+                            Math.pow((price - (double) parabolaFunctionPoints.get(i).getYValue()), 2))
+                    );
+
+                }
+
+                movingAverageTable.setItems(movingTableData);
+                mainCharacteristicTable.setItems(mainTableData);
+                linearTable.setItems(linearTableData);
+                exponentialTable.setItems(exponentialTableData);
+                parabolaTable.setItems(parabolaTableData);
+
+                chart.getData().add(series);
+                chart2.getData().addAll(List.of(
+                        new XYChart.Series<>(graphPoints),
+                        series2
+                ));
+
+                chart3.getData().addAll(List.of(
+                        new XYChart.Series<>(graphPoints),
+                        new XYChart.Series<>(moveAveragePoints),
+                        series3
+                ));
+
+                chart4.getData().addAll(List.of(
+                        new XYChart.Series<>(graphPoints),
+                        new XYChart.Series<>(moveAveragePoints),
+                        series4
+                ));
+
+                chart5.getData().addAll(List.of(
+                        new XYChart.Series<>(graphPoints),
+                        new XYChart.Series<>(moveAveragePoints),
+                        series5
+                ));
+
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        };
+    }
+
+    public VBox addBlock(Label[] label1, TableView<? extends TableEntity> table,
+                         LineChart<Number, Number> lineChart,
+                         Label[] label2) {
         VBox vBox = new VBox();
         HBox hBox = new HBox();
         hBox.getChildren().addAll(table, lineChart);
@@ -373,110 +628,6 @@ public class HelloApplication extends Application {
         for (int i = 0; i < v.length; i++) {
             System.out.print("x" + (i + 1) + " = " + v[i] + "\n");
         }
-    }
-
-    public EventHandler<ActionEvent> okButtonActionEvent() {
-        return actionEvent -> {
-            try (Scanner sc = new Scanner(new FileReader(fileField.getText()))) {
-
-                while (sc.hasNextInt()) {
-                    int time = sc.nextInt();
-                    double price = sc.nextDouble();
-
-                    int tableData2Size = movingTableData.size();
-                    movingTableData.add(new MovingAverageTableEntity(time, price));
-
-                    if (movingTableData.size() >= 3) {
-                        double movingAverage = (movingTableData.get(movingTableData.size() - 3).getPrice() +
-                                movingTableData.get(movingTableData.size() - 2).getPrice() +
-                                movingTableData.getLast().getPrice()) / 3;
-
-                        movingTableData.get(tableData2Size - 1).setMovingAverage(movingAverage);
-                        moveAveragePoints.add(new XYChart.Data<>(movingTableData.get(tableData2Size - 1).getTime(), movingAverage));
-                    }
-
-                    if (mainTableData.isEmpty()) {
-                        mainTableData.add(new MainCharacteristicsTableEntity(time, price));
-                    } else {
-                        double chainAbsoluteGrowth = price - mainTableData.getLast().getPrice();
-                        double basicAbsoluteGrowth = price - mainTableData.getFirst().getPrice();
-                        double chainGrowthRates = (price / mainTableData.getLast().getPrice()) * 100;
-                        double basicGrowthRates = (price / mainTableData.getFirst().getPrice()) * 100;
-                        double chainGrowthRates2 = chainAbsoluteGrowth / mainTableData.getLast().getPrice();
-                        double basicGrowthRates2 = basicAbsoluteGrowth / mainTableData.getFirst().getPrice();
-                        double absoluteValue = 0.01 * mainTableData.getLast().getPrice();
-
-                        if (mainTableData.size() >= 2) {
-                            double relativeAcceleration = (chainGrowthRates - mainTableData.getLast().getChainGrowthRates());
-                            double advanceRatio = chainGrowthRates / mainTableData.getLast().getChainGrowthRates();
-                            mainTableData.add(new MainCharacteristicsTableEntity(time, price, chainAbsoluteGrowth, basicAbsoluteGrowth,
-                                    chainGrowthRates, basicGrowthRates, chainGrowthRates2, basicGrowthRates2,
-                                    absoluteValue, relativeAcceleration, advanceRatio));
-                        } else {
-                            mainTableData.add(new MainCharacteristicsTableEntity(time, price, chainAbsoluteGrowth, basicAbsoluteGrowth,
-                                    chainGrowthRates, basicGrowthRates, chainGrowthRates2, basicGrowthRates2, absoluteValue));
-                        }
-                    }
-                    graphPoints.add(new XYChart.Data<>(time, price));
-                }
-
-                XYChart.Series<Number, Number> series = new XYChart.Series<>(graphPoints);
-                XYChart.Series<Number, Number> series2 = new XYChart.Series<>(moveAveragePoints);
-                series2.setName("Скользящая средняя из трех уровней");
-                series.setName("График");
-
-                double sumX = timePowSum(1);
-                double sumY = priceSum();
-                double sumXY = timeAndPriceSum();
-                double sumSqrX = timePowSum(2);
-
-                System.out.println(timePowSum(1) + " " + sumY + " " + sumXY + " " + timePowSum(2));
-
-                double k = getK(sumX, sumY, sumXY, sumSqrX);
-                double b = getB(k, sumX, sumY);
-
-                System.out.println(k + " " + b);
-
-                plot(linearFunctionPoints, linearFunction(), new double[]{k, b});
-                XYChart.Series<Number, Number> series3 = new XYChart.Series<>(linearFunctionPoints);
-                series3.setName("Линейная функция");
-
-                double[] variables = GaussMethod(new double[][]{
-                        {movingTableData.size() - 2, sumX, lnPriceSum()},
-                        {sumX, sumSqrX, timeLnPriceSum()}
-                });
-
-                plot(exponentialFunctionPoints, exponentialFunction(),
-                        Arrays.stream(variables)
-                                .map(Math::exp)
-                                .peek(System.out::println)
-                                .toArray()
-                );
-                XYChart.Series<Number, Number> series4 = new XYChart.Series<>(exponentialFunctionPoints);
-                series4.setName("Показательная функция");
-
-                double[] variables2 = GaussMethod(new double[][]{
-                        {movingTableData.size() - 2, sumX, sumSqrX, sumY},
-                        {sumX, sumSqrX, timePowSum(3), sumXY},
-                        {sumSqrX, timePowSum(3), timePowSum(4), timeSqrPriceSum()}
-                });
-
-                plot(parabolaFunctionPoints, parabolaFunction(), variables2);
-                XYChart.Series<Number, Number> series5 = new XYChart.Series<>(parabolaFunctionPoints);
-                series5.setName("Парабола");
-
-
-                movingAverageTable.setItems(movingTableData);
-                mainCharacteristicTable.setItems(mainTableData);
-                chart.getData().add(series);
-
-                XYChart.Series<Number, Number> series1 = new XYChart.Series<>();
-                chart2.getData().addAll(List.of(series1, series2));
-
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-        };
     }
 
     private void plot(ObservableList<XYChart.Data<Number, Number>> points,
