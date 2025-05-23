@@ -76,6 +76,8 @@ public class HelloApplication extends Application {
     private double[] exponentialVar;
     private double[] parabolaVar;
 
+    private VBox vbox;
+
     private final TextField fileField = new TextField();
 
 
@@ -162,6 +164,8 @@ public class HelloApplication extends Application {
         linearTable.prefWidthProperty().bind(mainCharacteristicTable.widthProperty());
         exponentialTable.prefWidthProperty().bind(mainCharacteristicTable.widthProperty());
         parabolaTable.prefWidthProperty().bind(mainCharacteristicTable.widthProperty());
+
+        parabolaTable.setMaxHeight(300);
 
         TableColumn<MainCharacteristicsTableEntity, String> time = new TableColumn<>("Время");
         time.setCellValueFactory(new PropertyValueFactory<>("time"));
@@ -307,46 +311,8 @@ public class HelloApplication extends Application {
         HBox fileHBox = new HBox();
         fileHBox.getChildren().addAll(fileField, fileButton, okButton);
 
-        VBox vbox = new VBox(fileHBox);
+        vbox = new VBox(fileHBox);
 
-
-        vbox.getChildren().add(addBlock(
-                new Label[]{new Label("Основные характеристики")},
-                mainCharacteristicTable,
-                chart,
-                new Label[]{}
-        ));
-
-        vbox.getChildren().add(addBlock(
-                new Label[]{new Label("Скользящая средняя")},
-                movingAverageTable,
-                chart2,
-                new Label[]{}
-        ));
-
-        vbox.getChildren().add(addBlock(
-                new Label[]{
-                        new Label("Прямая"),
-                        new Label("Уравнение прямой: y = " + linearVar[0] + "x + " + linearVar[1]),
-                },
-                linearTable,
-                chart3,
-                new Label[]{new Label()}
-        ));
-
-        vbox.getChildren().add(addBlock(
-                new Label[]{new Label("Показательная")},
-                exponentialTable,
-                chart4,
-                new Label[]{new Label()}
-        ));
-
-        vbox.getChildren().add(addBlock(
-                new Label[]{new Label("Парабола")},
-                parabolaTable,
-                chart5,
-                new Label[]{new Label()}
-        ));
 
 
 //        vbox.setMinHeight(1920);
@@ -514,6 +480,73 @@ public class HelloApplication extends Application {
                         new XYChart.Series<>(graphPoints),
                         new XYChart.Series<>(moveAveragePoints),
                         series5
+                ));
+
+
+                vbox.getChildren().add(addBlock(
+                        new Label[]{new Label("Основные характеристики")},
+                        mainCharacteristicTable,
+                        chart,
+                        new Label[]{}
+                ));
+
+                vbox.getChildren().add(addBlock(
+                        new Label[]{new Label("Скользящая средняя")},
+                        movingAverageTable,
+                        chart2,
+                        new Label[]{}
+                ));
+
+                vbox.getChildren().add(addBlock(
+                        new Label[]{
+                                new Label("Прямая"),
+                                new Label("Уравнение прямой: y = " + linearVar[0] + "*t + " + linearVar[1]),
+                        },
+                        linearTable,
+                        chart3,
+                        new Label[]{
+                                new Label(
+                                        linearTableData.stream()
+                                                .mapToDouble(FunctionTableEntity::getError)
+                                                .sum() + " - сумма квадратов отклонений"
+                                )
+                        }
+                ));
+
+                vbox.getChildren().add(addBlock(
+                        new Label[]{
+                                new Label("Показательная функция"),
+                                new Label("Уравнение показательной функции: y = " +
+                                        exponentialVar[0] + " * " + exponentialVar[1] + "^t"),
+                        },
+                        exponentialTable,
+                        chart4,
+                        new Label[]{
+                                new Label(
+                                        exponentialTableData.stream()
+                                                .mapToDouble(FunctionTableEntity::getError)
+                                                .sum() + " - сумма квадратов отклонений"
+                                )
+                        }
+                ));
+
+                vbox.getChildren().add(addBlock(
+                        new Label[]{
+                                new Label("Парабола"),
+                                new Label("Уравнение параболы: y = "
+                                        + parabolaVar[0] + " + " + parabolaVar[1] + "*t + " + parabolaVar[2] + "*t^2"),
+                        },
+                        parabolaTable,
+                        chart5,
+                        new Label[]{
+                                new Label(
+                                        parabolaTableData.stream()
+                                                .mapToDouble(FunctionTableEntity::getError)
+                                                .sum() + " - сумма квадратов отклонений"
+                                ),
+                                new Label("dsssssssssssssssssssssssssssssssss" +
+                                        "sdcccccccccccccccccccccccccccccccccccccccc\nlaiuefehviolaehfrvloaiuhrefovi")
+                        }
                 ));
 
             } catch (Exception e) {
