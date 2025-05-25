@@ -5,6 +5,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
@@ -165,7 +166,6 @@ public class HelloApplication extends Application {
         exponentialTable.prefWidthProperty().bind(mainCharacteristicTable.widthProperty());
         parabolaTable.prefWidthProperty().bind(mainCharacteristicTable.widthProperty());
 
-        parabolaTable.setMaxHeight(300);
 
         TableColumn<MainCharacteristicsTableEntity, String> time = new TableColumn<>("Время");
         time.setCellValueFactory(new PropertyValueFactory<>("time"));
@@ -294,7 +294,7 @@ public class HelloApplication extends Application {
     @Override
     public void start(Stage stage) {
         Group root = new Group();
-        Scene scene = new Scene(root, 1920, 1080);
+        Scene scene = new Scene(root, 1920, 1000);
 
         this.initApp();
 
@@ -312,23 +312,19 @@ public class HelloApplication extends Application {
         fileHBox.getChildren().addAll(fileField, fileButton, okButton);
 
         vbox = new VBox(fileHBox);
+        vbox.setSpacing(50);
+        vbox.setStyle("-fx-background-color: green;");
+        vbox.setMaxWidth(Double.MAX_VALUE);
+        vbox.setMaxHeight(Double.MAX_VALUE);
+        vbox.setAlignment(Pos.CENTER);
+        vbox.setMinWidth(1920);
 
 
-
-//        vbox.setMinHeight(1920);
-//        vbox.setMinWidth(1080);
 
         ScrollPane scrollPane = new ScrollPane(vbox);
         scrollPane.prefWidthProperty().bind(stage.widthProperty());
         scrollPane.prefHeightProperty().bind(stage.heightProperty());
-//        scrollPane.setFitToWidth(true);
-//        scrollPane.setFitToHeight(true);
-//        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
-//        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
-//        scrollPane.setFocusTraversable(true);
-//        scrollPane.requestFocus();
-//        scrollPane.setMinHeight(3000);
-//        scrollPane.setMinWidth(3000);
+        scrollPane.setMaxWidth(Double.MAX_VALUE);
 
 
         root.getChildren().addAll(scrollPane);
@@ -415,7 +411,7 @@ public class HelloApplication extends Application {
                 XYChart.Series<Number, Number> series4 = new XYChart.Series<>(exponentialFunctionPoints);
                 series4.setName("Показательная функция");
 
-                parabolaVar= GaussMethod(new double[][]{
+                parabolaVar = GaussMethod(new double[][]{
                         {movingTableData.size() - 2, sumX, sumSqrX, sumY},
                         {sumX, sumSqrX, timePowSum(3), sumXY},
                         {sumSqrX, timePowSum(3), timePowSum(4), timeSqrPriceSum()}
@@ -484,14 +480,48 @@ public class HelloApplication extends Application {
 
 
                 vbox.getChildren().add(addBlock(
-                        new Label[]{new Label("Основные характеристики")},
+                        new Label[]{
+                                setLabelProperties(new Label("Основные характеристики"), 20, Pos.CENTER)
+                        },
                         mainCharacteristicTable,
                         chart,
                         new Label[]{}
                 ));
 
+                double averageRowLevel = 0;
+                double averageAbsoluteGrowth =
+                        (mainTableData.getLast().getPrice() - mainTableData.getFirst().getPrice())
+                                / (mainTableData.size() - 1);
+                double averageGrowthRate = Math.pow(
+                        mainTableData.getLast().getPrice() / mainTableData.getFirst().getPrice(),
+                        1.0 / mainTableData.size()
+                );
+
+                for (MainCharacteristicsTableEntity data : mainTableData) {
+                    averageRowLevel += data.getPrice();
+                }
+                averageRowLevel /= mainTableData.size();
+
+                vbox.getChildren().addAll(
+                        setLabelProperties(
+                                new Label("Средние показатели"),
+                                20,
+                                Pos.CENTER
+                        ),
+                        setLabelProperties(
+                                new Label(
+                                        averageRowLevel + "- средний уровень ряда\n" +
+                                                averageAbsoluteGrowth + "- средний абсолютный прирост\n" +
+                                                averageGrowthRate + "- средний темп роста"),
+                                15,
+                                Pos.CENTER
+                        )
+                );
+
                 vbox.getChildren().add(addBlock(
-                        new Label[]{new Label("Скользящая средняя")},
+                        new Label[]{
+                                setLabelProperties(new Label("Скользящая средняя"), 20, Pos.CENTER)
+                        },
                         movingAverageTable,
                         chart2,
                         new Label[]{}
@@ -499,60 +529,94 @@ public class HelloApplication extends Application {
 
                 vbox.getChildren().add(addBlock(
                         new Label[]{
-                                new Label("Прямая"),
-                                new Label("Уравнение прямой: y = " + linearVar[0] + "*t + " + linearVar[1]),
+                                setLabelProperties(new Label("Прямая"), 20, Pos.CENTER),
+                                setLabelProperties(
+                                        new Label("Уравнение прямой: y = " + linearVar[0] + "*t + " + linearVar[1]),
+                                        15,
+                                        Pos.CENTER
+                                )
                         },
                         linearTable,
                         chart3,
                         new Label[]{
-                                new Label(
-                                        linearTableData.stream()
+                                setLabelProperties(
+                                        new Label(linearTableData.stream()
                                                 .mapToDouble(FunctionTableEntity::getError)
-                                                .sum() + " - сумма квадратов отклонений"
+                                                .sum() + " - сумма квадратов отклонений"),
+                                        15,
+                                        Pos.CENTER
                                 )
                         }
                 ));
 
                 vbox.getChildren().add(addBlock(
                         new Label[]{
-                                new Label("Показательная функция"),
-                                new Label("Уравнение показательной функции: y = " +
-                                        exponentialVar[0] + " * " + exponentialVar[1] + "^t"),
+                                setLabelProperties(
+                                        new Label("Показательная функция"),
+                                        20,
+                                        Pos.CENTER),
+                                setLabelProperties(
+                                        new Label("Уравнение показательной функции: y = " +
+                                                exponentialVar[0] + " * " + exponentialVar[1] + "^t"),
+                                        15,
+                                        Pos.CENTER
+                                )
                         },
                         exponentialTable,
                         chart4,
                         new Label[]{
-                                new Label(
-                                        exponentialTableData.stream()
+                                setLabelProperties(
+                                        new Label(exponentialTableData.stream()
                                                 .mapToDouble(FunctionTableEntity::getError)
-                                                .sum() + " - сумма квадратов отклонений"
+                                                .sum() + " - сумма квадратов отклонений"),
+                                        15,
+                                        Pos.CENTER
                                 )
                         }
                 ));
 
                 vbox.getChildren().add(addBlock(
                         new Label[]{
-                                new Label("Парабола"),
-                                new Label("Уравнение параболы: y = "
-                                        + parabolaVar[0] + " + " + parabolaVar[1] + "*t + " + parabolaVar[2] + "*t^2"),
+                                setLabelProperties(
+                                        new Label("Парабола"),
+                                        20,
+                                        Pos.CENTER),
+                                setLabelProperties(
+                                        new Label("Уравнение параболы: y = "
+                                                + parabolaVar[0] + " + " + parabolaVar[1] +
+                                                "*t + " + parabolaVar[2] + "*t^2"),
+                                        15,
+                                        Pos.CENTER
+                                )
                         },
                         parabolaTable,
                         chart5,
                         new Label[]{
-                                new Label(
-                                        parabolaTableData.stream()
+                                setLabelProperties(
+                                        new Label(parabolaTableData.stream()
                                                 .mapToDouble(FunctionTableEntity::getError)
-                                                .sum() + " - сумма квадратов отклонений"
-                                ),
-                                new Label("dsssssssssssssssssssssssssssssssss" +
-                                        "sdcccccccccccccccccccccccccccccccccccccccc\nlaiuefehviolaehfrvloaiuhrefovi")
+                                                .sum() + " - сумма квадратов отклонений"),
+                                        15,
+                                        Pos.CENTER
+                                )
                         }
                 ));
+
+                Group block = new Group();
+                block.minHeight(500);
+                vbox.getChildren().add(block);
 
             } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
         };
+    }
+
+    private Label setLabelProperties(Label label, int fontSize, Pos position) {
+        label.setStyle("-fx-font-size: " + fontSize + "; -fx-background-color: yellow;");
+        label.setMaxWidth(Double.MAX_VALUE);
+        label.setAlignment(position);
+        return label;
     }
 
     public VBox addBlock(Label[] label1, TableView<? extends TableEntity> table,
@@ -564,43 +628,44 @@ public class HelloApplication extends Application {
         vBox.getChildren().addAll(label1);
         vBox.getChildren().addAll(hBox);
         vBox.getChildren().addAll(label2);
+        hBox.setAlignment(Pos.CENTER);
         return vBox;
     }
 
 
-    public static double determinant(double[][] matrix) {
-        int n = matrix.length;
-        if (n == 1) {
-            return matrix[0][0];
-        } else if (n == 2) {
-            return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
-        } else {
-            double det = 0;
-            for (int i = 0; i < n; i++) {
-                double[][] submatrix = getSubmatrix(matrix, 0, i);
-                det += Math.pow(-1, i) * matrix[0][i] * determinant(submatrix);
-            }
-            return det;
-        }
-    }
-
-
-    private static double[][] getSubmatrix(double[][] matrix, int excludingRow, int excludingCol) {
-        int n = matrix.length;
-        double[][] submatrix = new double[n - 1][n - 1];
-        int subRow = 0;
-        for (int i = 0; i < n; i++) {
-            if (i == excludingRow) continue;
-            int subCol = 0;
-            for (int j = 0; j < n; j++) {
-                if (j == excludingCol) continue;
-                submatrix[subRow][subCol] = matrix[i][j];
-                subCol++;
-            }
-            subRow++;
-        }
-        return submatrix;
-    }
+//    public static double determinant(double[][] matrix) {
+//        int n = matrix.length;
+//        if (n == 1) {
+//            return matrix[0][0];
+//        } else if (n == 2) {
+//            return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
+//        } else {
+//            double det = 0;
+//            for (int i = 0; i < n; i++) {
+//                double[][] submatrix = getSubmatrix(matrix, 0, i);
+//                det += Math.pow(-1, i) * matrix[0][i] * determinant(submatrix);
+//            }
+//            return det;
+//        }
+//    }
+//
+//
+//    private static double[][] getSubmatrix(double[][] matrix, int excludingRow, int excludingCol) {
+//        int n = matrix.length;
+//        double[][] submatrix = new double[n - 1][n - 1];
+//        int subRow = 0;
+//        for (int i = 0; i < n; i++) {
+//            if (i == excludingRow) continue;
+//            int subCol = 0;
+//            for (int j = 0; j < n; j++) {
+//                if (j == excludingCol) continue;
+//                submatrix[subRow][subCol] = matrix[i][j];
+//                subCol++;
+//            }
+//            subRow++;
+//        }
+//        return submatrix;
+//    }
 
 
     private double[] SolveGauss(double[][] matrix) {
@@ -631,11 +696,11 @@ public class HelloApplication extends Application {
     }
 
     public double[] GaussMethod(double[][] matrix) {
-        //double[][] newMatrix = Arrays.stream(matrix).toArray(double[][]::new);
-        if (determinant(matrix) == 0) {
-            System.out.println("Определитель равен 0 => уравнение не " +
-                    "имеет решений или имеет бесконечно много решний");
-        }
+//        double[][] newMatrix = Arrays.stream(matrix).toArray(double[][]::new);
+//        if (determinant(matrix) == 0) {
+//            System.out.println("Определитель равен 0 => уравнение не " +
+//                    "имеет решений или имеет бесконечно много решний");
+//        }
         double m;
         int r = 0;
         for (int k = 0; k < matrix[0].length; k++) {
