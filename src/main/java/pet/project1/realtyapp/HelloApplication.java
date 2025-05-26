@@ -17,12 +17,15 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.apache.commons.math3.distribution.FDistribution;
+import org.apache.commons.math3.distribution.TDistribution;
 import pet.project1.realtyapp.entity.FunctionTableEntity;
 import pet.project1.realtyapp.entity.MainCharacteristicsTableEntity;
 import pet.project1.realtyapp.entity.MovingAverageTableEntity;
 import pet.project1.realtyapp.entity.TableEntity;
 
 import java.io.FileReader;
+import java.math.MathContext;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
@@ -320,7 +323,6 @@ public class HelloApplication extends Application {
         vbox.setMinWidth(1920);
 
 
-
         ScrollPane scrollPane = new ScrollPane(vbox);
         scrollPane.prefWidthProperty().bind(stage.widthProperty());
         scrollPane.prefHeightProperty().bind(stage.heightProperty());
@@ -518,6 +520,63 @@ public class HelloApplication extends Application {
                         )
                 );
 
+                int index1 = (mainTableData.size() / 2);
+                int index2 = mainTableData.size();
+
+                System.out.println(index1 + " " + index2 + " indexes");
+
+                double middleRowLevel1 = getMiddleRowLevel(0, index1);
+                double middleRowLevel2 = getMiddleRowLevel(index1, index2);
+
+                double varianceLevel1 = getVariance(0, index1, middleRowLevel1);
+                double varianceLevel2 = getVariance(index1, index2, middleRowLevel2);
+
+                double F = Double.max(varianceLevel1, varianceLevel2) / Double.min(varianceLevel1, varianceLevel2);
+
+                double deviation = Math.sqrt(
+                        ((varianceLevel1 * (index1 - 1)) + (varianceLevel2 * (index2 - index1 - 1)))
+                                / (index1 + (index2 - index1) - 2)
+                );
+
+                double t = Math.abs(middleRowLevel1 - middleRowLevel2)
+                        / (deviation * Math.sqrt((1.0 / index1) + (1.0 / (index2 - index1))));
+
+                FDistribution FDist = new FDistribution(
+                        index1 - 1,
+                        index2 - index1 - 1
+                );
+
+                double tableF = FDist.inverseCumulativeProbability(1.0 - 0.05);
+
+                TDistribution TDist = new TDistribution(index2 - 2);
+
+                double tableT = TDist.inverseCumulativeProbability(1.0 - 0.05 / 2);
+
+                if (F < tableF) {
+
+                } else {
+
+                }
+
+
+                vbox.getChildren().addAll(
+                        setLabelProperties(
+                                new Label("Проверка ряда на стационарность"),
+                                20,
+                                Pos.CENTER),
+                        setLabelProperties(
+                                new Label(middleRowLevel1 + ", " + middleRowLevel2 +
+                                        " - средние уровни половин ряда\n" +
+                                        varianceLevel1 + ", " + varianceLevel2 + " - дисперсии половин ряда\n" +
+                                        F + " - F-критерий Фишера\n" +
+                                        tableF + " - F-критерий Фишера табличный\n" +
+                                        deviation + "- среднее квадратическое отклонение\n" +
+                                        t + "t-критерий Стьюдента\n" +
+                                        tableT + "- t-критерий Стьюдента табличный\n"),
+                                15,
+                                Pos.CENTER)
+                );
+
                 vbox.getChildren().add(addBlock(
                         new Label[]{
                                 setLabelProperties(new Label("Скользящая средняя"), 20, Pos.CENTER)
@@ -610,6 +669,21 @@ public class HelloApplication extends Application {
                 System.out.println(e.getMessage());
             }
         };
+    }
+
+    private double getVariance(int start, int end, double middleRowLevel) {
+        double sum = IntStream.range(start, end)
+                .mapToDouble(i -> Math.pow(mainTableData.get(i).getPrice() - middleRowLevel, 2))
+                .sum();
+        System.out.println(sum + " сумма дисперсия\n" + " " + (double) ((end - start) - 1));
+        return sum / (double) ((end - start) - 1);
+    }
+
+    private double getMiddleRowLevel(int start, int end) {
+        return IntStream.range(start, end)
+                .mapToDouble(i -> mainTableData.get(i).getPrice())
+                .average()
+                .orElse(0);
     }
 
     private Label setLabelProperties(Label label, int fontSize, Pos position) {
