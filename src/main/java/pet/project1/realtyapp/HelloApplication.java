@@ -25,7 +25,7 @@ import pet.project1.realtyapp.entity.MovingAverageTableEntity;
 import pet.project1.realtyapp.entity.TableEntity;
 
 import java.io.FileReader;
-import java.math.MathContext;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
@@ -504,6 +504,14 @@ public class HelloApplication extends Application {
                 }
                 averageRowLevel /= mainTableData.size();
 
+                double finalAverageRowLevel = averageRowLevel;
+                double variance = Math.sqrt(
+                        mainTableData.stream()
+                                .mapToDouble(i -> Math.pow(i.getPrice() - finalAverageRowLevel, 2))
+                                .sum()
+                                / (mainTableData.size() - 1)
+                );
+
                 vbox.getChildren().addAll(
                         setLabelProperties(
                                 new Label("Средние показатели"),
@@ -512,9 +520,10 @@ public class HelloApplication extends Application {
                         ),
                         setLabelProperties(
                                 new Label(
-                                        averageRowLevel + "- средний уровень ряда\n" +
-                                                averageAbsoluteGrowth + "- средний абсолютный прирост\n" +
-                                                averageGrowthRate + "- средний темп роста"),
+                                        averageRowLevel + " - средний уровень ряда\n" +
+                                                averageAbsoluteGrowth + " - средний абсолютный прирост\n" +
+                                                averageGrowthRate + " - средний темп роста\n" +
+                                                variance + " - среднее квадратическое отклонение"),
                                 15,
                                 Pos.CENTER
                         )
@@ -523,7 +532,7 @@ public class HelloApplication extends Application {
                 int index1 = (mainTableData.size() / 2);
                 int index2 = mainTableData.size();
 
-                System.out.println(index1 + " " + index2 + " indexes");
+                //System.out.println(index1 + " " + index2 + " indexes");
 
                 double middleRowLevel1 = getMiddleRowLevel(0, index1);
                 double middleRowLevel2 = getMiddleRowLevel(index1, index2);
@@ -533,31 +542,66 @@ public class HelloApplication extends Application {
 
                 double F = Double.max(varianceLevel1, varianceLevel2) / Double.min(varianceLevel1, varianceLevel2);
 
-                double deviation = Math.sqrt(
-                        ((varianceLevel1 * (index1 - 1)) + (varianceLevel2 * (index2 - index1 - 1)))
-                                / (index1 + (index2 - index1) - 2)
-                );
-
-                double t = Math.abs(middleRowLevel1 - middleRowLevel2)
-                        / (deviation * Math.sqrt((1.0 / index1) + (1.0 / (index2 - index1))));
-
-                FDistribution FDist = new FDistribution(
+                double tableF = new FDistribution(
                         index1 - 1,
                         index2 - index1 - 1
-                );
+                ).inverseCumulativeProbability(1.0 - 0.05);
 
-                double tableF = FDist.inverseCumulativeProbability(1.0 - 0.05);
+                double t;
 
-                TDistribution TDist = new TDistribution(index2 - 2);
+                double tableT;
 
-                double tableT = TDist.inverseCumulativeProbability(1.0 - 0.05 / 2);
+                String str1 = "";
+                String str2 = "";
 
                 if (F < tableF) {
+                    double deviation = Math.sqrt(
+                            ((varianceLevel1 * (index1 - 1)) + (varianceLevel2 * (index2 - index1 - 1)))
+                                    / (index1 + (index2 - index1) - 2)
+                    );
 
+                    str1 += "вычисленный F-критерий Фишера меньше табличного, следовательно, \n" +
+                            "дисперсии уровней в двух половинах ряда отличаются незначимо\n" +
+                            deviation + " - среднее квадратическое отклонение\n";
+
+                    t = Math.abs(middleRowLevel1 - middleRowLevel2)
+                            / (deviation * Math.sqrt((1.0 / index1) + (1.0 / (index2 - index1))));
+
+                    tableT = new TDistribution(index2 - 2)
+                            .inverseCumulativeProbability(1.0 - 0.05 / 2);
                 } else {
 
+
+                    double f = ((varianceLevel1 / index1) + (varianceLevel2 / (index2 - index1)))
+                            / Math.sqrt((Math.pow(varianceLevel1 / index1, 2) / (index1 + 1))
+                            + (Math.pow(varianceLevel2 / (index2 - index1), 2) / (index2 - index1 + 1))
+                    );
+                    str1 += "вычисленный F-критерий Фишера больше табличного, следовательно, " +
+                            "дисперсии уровней в двух половинах ряда отличаются значимо\n";
+
+                    t = Math.abs(middleRowLevel1 - middleRowLevel2) /
+                            Math.sqrt((1.0 / index1) + (1.0 / (index2 - index1)));
+
+                    tableT = new TDistribution(f - 2).inverseCumulativeProbability(1.0 - 0.05 / 2);
                 }
 
+                if (t < tableT) {
+                    double error =
+                            new TDistribution(mainTableData.size() - 1).inverseCumulativeProbability(1.0 - 0.05 / 2)
+                                    * variance
+                                    * Math.sqrt(1 + (1 / (mainTableData.size() - 1.0)));
+
+                    str2 += "вычисленный t-критерий Стьюдента меньше табличного, \n" +
+                            "т.е с большей вероятностью ряд не имеет тенденции и \n" +
+                            "его можно считать стационарным\n" +
+                            error + " - ошибка прогноза\n" +
+                            (averageRowLevel - error) + " < Y-пр < " + (averageRowLevel + error);
+                } else {
+                    str2 += """
+                            вычисленный t-критерий Стьюдента больше табличного,\s
+                            т.е ряд нельзя считать стационарным
+                            """;
+                }
 
                 vbox.getChildren().addAll(
                         setLabelProperties(
@@ -570,9 +614,10 @@ public class HelloApplication extends Application {
                                         varianceLevel1 + ", " + varianceLevel2 + " - дисперсии половин ряда\n" +
                                         F + " - F-критерий Фишера\n" +
                                         tableF + " - F-критерий Фишера табличный\n" +
-                                        deviation + "- среднее квадратическое отклонение\n" +
-                                        t + "t-критерий Стьюдента\n" +
-                                        tableT + "- t-критерий Стьюдента табличный\n"),
+                                        str1 +
+                                        t + " - t-критерий Стьюдента\n" +
+                                        tableT + "- t-критерий Стьюдента табличный\n" +
+                                        str2),
                                 15,
                                 Pos.CENTER)
                 );
