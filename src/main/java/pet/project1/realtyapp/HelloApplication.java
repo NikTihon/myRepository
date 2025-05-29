@@ -380,11 +380,6 @@ public class HelloApplication extends Application {
                     graphPoints.add(new XYChart.Data<>(time, price));
                 }
 
-                XYChart.Series<Number, Number> series = new XYChart.Series<>(graphPoints);
-                XYChart.Series<Number, Number> series2 = new XYChart.Series<>(moveAveragePoints);
-                series2.setName("Скользящая средняя из трех уровней");
-                series.setName("График");
-
                 double sumX = timePowSum(1);
                 double sumY = priceSum();
                 double sumXY = timeAndPriceSum();
@@ -394,10 +389,6 @@ public class HelloApplication extends Application {
                 double b = getB(k, sumX, sumY);
 
                 linearVar = new double[]{k, b};
-
-                plot(linearFunctionPoints, linearFunction(), new double[]{k, b});
-                XYChart.Series<Number, Number> series3 = new XYChart.Series<>(linearFunctionPoints);
-                series3.setName("Линейная функция");
 
                 exponentialVar = GaussMethod(new double[][]{
                         {movingTableData.size() - 2, sumX, lnPriceSum()},
@@ -410,8 +401,6 @@ public class HelloApplication extends Application {
                                 .peek(System.out::println)
                                 .toArray()
                 );
-                XYChart.Series<Number, Number> series4 = new XYChart.Series<>(exponentialFunctionPoints);
-                series4.setName("Показательная функция");
 
                 parabolaVar = GaussMethod(new double[][]{
                         {movingTableData.size() - 2, sumX, sumSqrX, sumY},
@@ -420,8 +409,6 @@ public class HelloApplication extends Application {
                 });
 
                 plot(parabolaFunctionPoints, parabolaFunction(), parabolaVar);
-                XYChart.Series<Number, Number> series5 = new XYChart.Series<>(parabolaFunctionPoints);
-                series5.setName("Парабола");
 
                 for (int i = 0; i < mainTableData.size(); i++) {
                     double time = mainTableData.get(i).getTime();
@@ -456,28 +443,28 @@ public class HelloApplication extends Application {
                 exponentialTable.setItems(exponentialTableData);
                 parabolaTable.setItems(parabolaTableData);
 
-                chart.getData().add(series);
+                chart.getData().add(new XYChart.Series<>("График ряда", graphPoints));
                 chart2.getData().addAll(List.of(
-                        new XYChart.Series<>(graphPoints),
-                        series2
+                        new XYChart.Series<>("График ряда", graphPoints),
+                        new XYChart.Series<>("Скользящая средняя из трех уровней", moveAveragePoints)
                 ));
 
                 chart3.getData().addAll(List.of(
-                        new XYChart.Series<>(graphPoints),
-                        new XYChart.Series<>(moveAveragePoints),
-                        series3
+                        new XYChart.Series<>("График ряда", graphPoints),
+                        new XYChart.Series<>("Скользящая средняя", moveAveragePoints),
+                        new XYChart.Series<>("Линейная функция", linearFunctionPoints)
                 ));
 
                 chart4.getData().addAll(List.of(
-                        new XYChart.Series<>(graphPoints),
-                        new XYChart.Series<>(moveAveragePoints),
-                        series4
+                        new XYChart.Series<>("График ряда", graphPoints),
+                        new XYChart.Series<>("Скользящая средняя", moveAveragePoints),
+                        new XYChart.Series<>("Показательная функция", exponentialFunctionPoints)
                 ));
 
                 chart5.getData().addAll(List.of(
-                        new XYChart.Series<>(graphPoints),
-                        new XYChart.Series<>(moveAveragePoints),
-                        series5
+                        new XYChart.Series<>("График ряда", graphPoints),
+                        new XYChart.Series<>("Скользящая средняя", moveAveragePoints),
+                        new XYChart.Series<>("Порабола", parabolaFunctionPoints)
                 ));
 
 
@@ -677,7 +664,7 @@ public class HelloApplication extends Application {
                         new Label[]{
                                 setLabelProperties(
                                         new Label(sum + " - сумма квадратов отклонений\n" +
-                                                (sum/(exponentialTableData.size() - exponentialVar.length))
+                                                (sum / (exponentialTableData.size() - exponentialVar.length))
                                                 + " - средняя квадратическая ошибка уравнения тренда"),
                                         15,
                                         Pos.CENTER
@@ -706,7 +693,7 @@ public class HelloApplication extends Application {
                         new Label[]{
                                 setLabelProperties(
                                         new Label(sum + " - сумма квадратов отклонений\n" +
-                                                (sum/(exponentialTableData.size() - exponentialVar.length)) +
+                                                (sum / (exponentialTableData.size() - exponentialVar.length)) +
                                                 " - средняя квадратическая ошибка уравнения тренда"),
                                         15,
                                         Pos.CENTER
