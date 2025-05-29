@@ -631,6 +631,9 @@ public class HelloApplication extends Application {
                         new Label[]{}
                 ));
 
+
+                double sum = getErrorSum(linearTableData);
+
                 vbox.getChildren().add(addBlock(
                         new Label[]{
                                 setLabelProperties(new Label("Прямая"), 20, Pos.CENTER),
@@ -644,14 +647,17 @@ public class HelloApplication extends Application {
                         chart3,
                         new Label[]{
                                 setLabelProperties(
-                                        new Label(linearTableData.stream()
-                                                .mapToDouble(FunctionTableEntity::getError)
-                                                .sum() + " - сумма квадратов отклонений"),
+                                        new Label(sum + " - сумма квадратов отклонений\n" +
+                                                (sum / (linearTableData.size() - linearVar.length)) +
+                                                " - средняя квадратическая ошибка уравнения тренда"
+                                        ),
                                         15,
                                         Pos.CENTER
                                 )
                         }
                 ));
+
+                sum = getErrorSum(exponentialTableData);
 
                 vbox.getChildren().add(addBlock(
                         new Label[]{
@@ -670,14 +676,16 @@ public class HelloApplication extends Application {
                         chart4,
                         new Label[]{
                                 setLabelProperties(
-                                        new Label(exponentialTableData.stream()
-                                                .mapToDouble(FunctionTableEntity::getError)
-                                                .sum() + " - сумма квадратов отклонений"),
+                                        new Label(sum + " - сумма квадратов отклонений\n" +
+                                                (sum/(exponentialTableData.size() - exponentialVar.length))
+                                                + " - средняя квадратическая ошибка уравнения тренда"),
                                         15,
                                         Pos.CENTER
                                 )
                         }
                 ));
+
+                sum = getErrorSum(parabolaTableData);
 
                 vbox.getChildren().add(addBlock(
                         new Label[]{
@@ -697,9 +705,9 @@ public class HelloApplication extends Application {
                         chart5,
                         new Label[]{
                                 setLabelProperties(
-                                        new Label(parabolaTableData.stream()
-                                                .mapToDouble(FunctionTableEntity::getError)
-                                                .sum() + " - сумма квадратов отклонений"),
+                                        new Label(sum + " - сумма квадратов отклонений\n" +
+                                                (sum/(exponentialTableData.size() - exponentialVar.length)) +
+                                                " - средняя квадратическая ошибка уравнения тренда"),
                                         15,
                                         Pos.CENTER
                                 )
@@ -714,6 +722,12 @@ public class HelloApplication extends Application {
                 System.out.println(e.getMessage());
             }
         };
+    }
+
+    private double getErrorSum(ObservableList<FunctionTableEntity> data) {
+        return data.stream()
+                .mapToDouble(FunctionTableEntity::getError)
+                .sum();
     }
 
     private double getVariance(int start, int end, double middleRowLevel) {
