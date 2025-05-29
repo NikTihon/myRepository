@@ -380,6 +380,7 @@ public class HelloApplication extends Application {
                     graphPoints.add(new XYChart.Data<>(time, price));
                 }
 
+
                 double sumX = timePowSum(1);
                 double sumY = priceSum();
                 double sumXY = timeAndPriceSum();
@@ -389,6 +390,8 @@ public class HelloApplication extends Application {
                 double b = getB(k, sumX, sumY);
 
                 linearVar = new double[]{k, b};
+
+                plot(linearFunctionPoints, linearFunction(), new double[]{k, b});
 
                 exponentialVar = GaussMethod(new double[][]{
                         {movingTableData.size() - 2, sumX, lnPriceSum()},
@@ -409,6 +412,7 @@ public class HelloApplication extends Application {
                 });
 
                 plot(parabolaFunctionPoints, parabolaFunction(), parabolaVar);
+
 
                 for (int i = 0; i < mainTableData.size(); i++) {
                     double time = mainTableData.get(i).getTime();
