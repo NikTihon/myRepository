@@ -76,9 +76,6 @@ public class HelloApplication extends Application {
     private final ObservableList<XYChart.Data<Number, Number>> parabolaFunctionPoints =
             FXCollections.observableArrayList();
 
-    private double[] linearVar;
-    private double[] exponentialVar;
-    private double[] parabolaVar;
 
     private VBox vbox;
 
@@ -299,13 +296,12 @@ public class HelloApplication extends Application {
         Group root = new Group();
         Scene scene = new Scene(root, 1920, 1000);
 
-        this.initApp();
-
         Button fileButton = new Button("Выбрать файл");
         fileButton.setOnAction(actionEvent -> {
             FileChooser fileChooser = new FileChooser();
             String file = fileChooser.showOpenDialog(stage).getAbsolutePath();
             fileField.setText(file);
+            clearApp();
         });
 
         Button okButton = new Button("Ок");
@@ -314,7 +310,9 @@ public class HelloApplication extends Application {
         HBox fileHBox = new HBox();
         fileHBox.getChildren().addAll(fileField, fileButton, okButton);
 
-        vbox = new VBox(fileHBox);
+        VBox vBox = new VBox(fileHBox);
+
+        vbox = new VBox();
         vbox.setSpacing(50);
         vbox.setStyle("-fx-background-color: green;");
         vbox.setMaxWidth(Double.MAX_VALUE);
@@ -322,8 +320,9 @@ public class HelloApplication extends Application {
         vbox.setAlignment(Pos.CENTER);
         vbox.setMinWidth(1920);
 
+        vBox.getChildren().add(vbox);
 
-        ScrollPane scrollPane = new ScrollPane(vbox);
+        ScrollPane scrollPane = new ScrollPane(vBox);
         scrollPane.prefWidthProperty().bind(stage.widthProperty());
         scrollPane.prefHeightProperty().bind(stage.heightProperty());
         scrollPane.setMaxWidth(Double.MAX_VALUE);
@@ -338,6 +337,7 @@ public class HelloApplication extends Application {
 
     public EventHandler<ActionEvent> okButtonActionEvent() {
         return actionEvent -> {
+            this.initApp();
             try (Scanner sc = new Scanner(new FileReader(fileField.getText()))) {
                 while (sc.hasNextInt()) {
                     int time = sc.nextInt();
@@ -381,6 +381,8 @@ public class HelloApplication extends Application {
                 }
 
 
+                mainTableData.forEach(i-> System.out.println(i.getPrice()));
+
                 double sumX = timePowSum(1);
                 double sumY = priceSum();
                 double sumXY = timeAndPriceSum();
@@ -389,11 +391,11 @@ public class HelloApplication extends Application {
                 double k = getK(sumX, sumY, sumXY, sumSqrX);
                 double b = getB(k, sumX, sumY);
 
-                linearVar = new double[]{k, b};
+                double[] linearVar = new double[]{k, b};
 
                 plot(linearFunctionPoints, linearFunction(), new double[]{k, b});
 
-                exponentialVar = GaussMethod(new double[][]{
+                double[] exponentialVar = GaussMethod(new double[][]{
                         {movingTableData.size() - 2, sumX, lnPriceSum()},
                         {sumX, sumSqrX, timeLnPriceSum()}
                 });
@@ -405,7 +407,7 @@ public class HelloApplication extends Application {
                                 .toArray()
                 );
 
-                parabolaVar = GaussMethod(new double[][]{
+                double[] parabolaVar = GaussMethod(new double[][]{
                         {movingTableData.size() - 2, sumX, sumSqrX, sumY},
                         {sumX, sumSqrX, timePowSum(3), sumXY},
                         {sumSqrX, timePowSum(3), timePowSum(4), timeSqrPriceSum()}
@@ -447,28 +449,31 @@ public class HelloApplication extends Application {
                 exponentialTable.setItems(exponentialTableData);
                 parabolaTable.setItems(parabolaTableData);
 
-                chart.getData().add(new XYChart.Series<>("График ряда", graphPoints));
-                chart2.getData().addAll(List.of(
+                //chart.getData().add();
+                chart.setData(FXCollections.observableArrayList(List.of(
+                        new XYChart.Series<>("График ряда", graphPoints))
+                ));
+                chart2.setData(FXCollections.observableArrayList(List.of(
                         new XYChart.Series<>("График ряда", graphPoints),
-                        new XYChart.Series<>("Скользящая средняя из трех уровней", moveAveragePoints)
+                        new XYChart.Series<>("Скользящая средняя из трех уровней", moveAveragePoints))
                 ));
 
-                chart3.getData().addAll(List.of(
+                chart3.setData(FXCollections.observableArrayList(List.of(
                         new XYChart.Series<>("График ряда", graphPoints),
                         new XYChart.Series<>("Скользящая средняя", moveAveragePoints),
-                        new XYChart.Series<>("Линейная функция", linearFunctionPoints)
+                        new XYChart.Series<>("Линейная функция", linearFunctionPoints))
                 ));
 
-                chart4.getData().addAll(List.of(
+                chart4.setData(FXCollections.observableArrayList(List.of(
                         new XYChart.Series<>("График ряда", graphPoints),
                         new XYChart.Series<>("Скользящая средняя", moveAveragePoints),
-                        new XYChart.Series<>("Показательная функция", exponentialFunctionPoints)
+                        new XYChart.Series<>("Показательная функция", exponentialFunctionPoints))
                 ));
 
-                chart5.getData().addAll(List.of(
+                chart5.setData(FXCollections.observableArrayList(List.of(
                         new XYChart.Series<>("График ряда", graphPoints),
                         new XYChart.Series<>("Скользящая средняя", moveAveragePoints),
-                        new XYChart.Series<>("Порабола", parabolaFunctionPoints)
+                        new XYChart.Series<>("Порабола", parabolaFunctionPoints))
                 ));
 
 
@@ -517,6 +522,16 @@ public class HelloApplication extends Application {
                                                 variance + " - среднее квадратическое отклонение"),
                                 15,
                                 Pos.CENTER
+                        ),
+                        setLabelProperties(
+                                new Label("Формула прогноза по среднему абсолютносу приросту\n" +
+                                        "Yпр = " + mainTableData.getLast().getPrice() + " + " + averageAbsoluteGrowth + " * L\n" +
+                                        "Формула прогноза по среднднему коэффициенту роста:\n" +
+                                        "Yпр = " + mainTableData.getLast().getPrice() + " * " + averageGrowthRate + "^L\n" +
+                                        "L - период упреждения"
+                                ),
+                                15,
+                                Pos.CENTER
                         )
                 );
 
@@ -560,8 +575,8 @@ public class HelloApplication extends Application {
 
                     tableT = new TDistribution(index2 - 2)
                             .inverseCumulativeProbability(1.0 - 0.05 / 2);
-                } else {
 
+                } else {
 
                     double f = ((varianceLevel1 / index1) + (varianceLevel2 / (index2 - index1)))
                             / Math.sqrt((Math.pow(varianceLevel1 / index1, 2) / (index1 + 1))
@@ -713,6 +728,41 @@ public class HelloApplication extends Application {
                 System.out.println(e.getMessage());
             }
         };
+    }
+
+    private void clearApp() {
+//        chart.getData().clear();
+//        chart2.getData().clear();
+//        chart3.getData().clear();
+//        chart4.getData().clear();
+//        chart5.getData().clear();
+
+        mainCharacteristicTable.getItems().clear();
+        movingAverageTable.getItems().clear();
+        parabolaTable.getItems().clear();
+        linearTable.getItems().clear();
+        exponentialTable.getItems().clear();
+
+        mainCharacteristicTable.getColumns().clear();
+        movingAverageTable.getColumns().clear();
+        parabolaTable.getColumns().clear();
+        linearTable.getColumns().clear();
+        exponentialTable.getColumns().clear();
+
+        mainTableData.clear();
+        movingTableData.clear();
+        parabolaTableData.clear();
+        linearTableData.clear();
+        exponentialTableData.clear();
+
+        graphPoints.clear();
+        moveAveragePoints.clear();
+        linearFunctionPoints.clear();
+        exponentialFunctionPoints.clear();
+        parabolaFunctionPoints.clear();
+
+        vbox.getChildren().clear();
+
     }
 
     private double getErrorSum(ObservableList<FunctionTableEntity> data) {
