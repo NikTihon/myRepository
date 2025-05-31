@@ -310,6 +310,9 @@ public class HelloApplication extends Application {
         Button fileButton = new Button("Выбрать файл");
         fileButton.setOnAction(actionEvent -> {
             FileChooser fileChooser = new FileChooser();
+            fileChooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("Text Files", "*.txt")
+            );
             String file = fileChooser.showOpenDialog(stage).getAbsolutePath();
             fileField.setText(file);
             clearApp();
@@ -443,9 +446,13 @@ public class HelloApplication extends Application {
                                 15
                         ),
                         setLabelProperties(
-                                new Label("Формула прогноза по среднему абсолютносу приросту\n" +
+                                new Label("Упрощённые методы прогнозирования(предварительные прогнозы)"),
+                                20
+                        ),
+                        setLabelProperties(
+                                new Label("Формула прогноза по среднему абсолютному приросту\n" +
                                         "Yпр = " + mainTableData.getLast().getPrice() + " + " + averageAbsoluteGrowth + " * L\n" +
-                                        "Формула прогноза по среднднему коэффициенту роста:\n" +
+                                        "Формула прогноза по среднему коэффициенту роста:\n" +
                                         "Yпр = " + mainTableData.getLast().getPrice() + " * " + averageGrowthRate + "^L\n" +
                                         "L - период упреждения"
                                 ),
