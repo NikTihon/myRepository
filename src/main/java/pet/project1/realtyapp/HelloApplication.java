@@ -38,15 +38,15 @@ import java.util.stream.IntStream;
 public class HelloApplication extends Application {
 
     private final LineChart<Number, Number> chart =
-            new LineChart<>(setAxisProperties(new NumberAxis()), setAxisProperties(new NumberAxis()));
+            new LineChart<>(setXAxisProperties(new NumberAxis()), setYAxisProperties(new NumberAxis()));
     private final LineChart<Number, Number> chart2 =
-            new LineChart<>(setAxisProperties(new NumberAxis()), setAxisProperties(new NumberAxis()));
+            new LineChart<>(setXAxisProperties(new NumberAxis()), setYAxisProperties(new NumberAxis()));
     private final LineChart<Number, Number> chart3 =
-            new LineChart<>(setAxisProperties(new NumberAxis()), setAxisProperties(new NumberAxis()));
+            new LineChart<>(setXAxisProperties(new NumberAxis()), setYAxisProperties(new NumberAxis()));
     private final LineChart<Number, Number> chart4 =
-            new LineChart<>(setAxisProperties(new NumberAxis()), setAxisProperties(new NumberAxis()));
+            new LineChart<>(setXAxisProperties(new NumberAxis()), setYAxisProperties(new NumberAxis()));
     private final LineChart<Number, Number> chart5 =
-            new LineChart<>(setAxisProperties(new NumberAxis()), setAxisProperties(new NumberAxis()));
+            new LineChart<>(setXAxisProperties(new NumberAxis()), setYAxisProperties(new NumberAxis()));
 
     private final TableView<MainCharacteristicsTableEntity> mainCharacteristicTable = new TableView<>();
     private final TableView<MovingAverageTableEntity> movingAverageTable = new TableView<>();
@@ -82,8 +82,12 @@ public class HelloApplication extends Application {
     private final TextField fileField = new TextField();
 
 
-    private NumberAxis setAxisProperties(NumberAxis axis) {
+    private NumberAxis setXAxisProperties(NumberAxis axis) {
         axis.setLabel("Время");
+        return axis;
+    }
+
+    private NumberAxis setYAxisProperties(NumberAxis axis) {
         axis.setLabel("Цена за м.кв., руб.");
         return axis;
     }
@@ -119,7 +123,8 @@ public class HelloApplication extends Application {
     }
 
     private double getK(double sumX, double sumY, double sumXY, double sumSqrX) {
-        return ((movingTableData.size() - 2) * sumXY - sumX * sumY) / ((movingTableData.size() - 2) * sumSqrX - sumX * sumX);
+        return ((movingTableData.size() - 2) * sumXY - sumX * sumY)
+                / ((movingTableData.size() - 2) * sumSqrX - sumX * sumX);
     }
 
     private double getB(double k, double sumX, double sumY) {
@@ -225,7 +230,8 @@ public class HelloApplication extends Application {
         TableColumn<MovingAverageTableEntity, String> price1 = new TableColumn<>("Цена");
         price1.setCellValueFactory(new PropertyValueFactory<>("price"));
 
-        TableColumn<MovingAverageTableEntity, String> movingAverage = new TableColumn<>("Скользящая\nсредняя\nизтрёх\nуровней");
+        TableColumn<MovingAverageTableEntity, String> movingAverage =
+                new TableColumn<>("Скользящая\nсредняя\nизтрёх\nуровней");
         movingAverage.setCellValueFactory(new PropertyValueFactory<>("movingAverage"));
 
 
@@ -277,7 +283,12 @@ public class HelloApplication extends Application {
                 time4, price4, lvl3, error3
         ));
 
-        this.setStandartPropertyAll(time1, price1, movingAverage);
+        this.setStandartPropertyAll(
+                time1, price1, movingAverage,
+                time2, price2, lvl, error,
+                time3, price3, lvl2, error2,
+                time4, price4, lvl3, error3
+        );
 
         movingAverageTable.getColumns().addAll(List.of(time1, price1, movingAverage));
     }
@@ -308,13 +319,16 @@ public class HelloApplication extends Application {
         okButton.setOnAction(okButtonActionEvent());
 
         HBox fileHBox = new HBox();
+        fileHBox.setAlignment(Pos.CENTER);
+        fileHBox.setStyle("-fx-background-color: #4fc14f;");
         fileHBox.getChildren().addAll(fileField, fileButton, okButton);
 
         VBox vBox = new VBox(fileHBox);
 
         vbox = new VBox();
+        vbox.setMinSize(1920, 1080);
         vbox.setSpacing(50);
-        vbox.setStyle("-fx-background-color: green;");
+        vbox.setStyle("-fx-background-color: #4fc14f;");
         vbox.setMaxWidth(Double.MAX_VALUE);
         vbox.setMaxHeight(Double.MAX_VALUE);
         vbox.setAlignment(Pos.CENTER);
@@ -380,130 +394,37 @@ public class HelloApplication extends Application {
                     graphPoints.add(new XYChart.Data<>(time, price));
                 }
 
-
-                mainTableData.forEach(i-> System.out.println(i.getPrice()));
-
-                double sumX = timePowSum(1);
-                double sumY = priceSum();
-                double sumXY = timeAndPriceSum();
-                double sumSqrX = timePowSum(2);
-
-                double k = getK(sumX, sumY, sumXY, sumSqrX);
-                double b = getB(k, sumX, sumY);
-
-                double[] linearVar = new double[]{k, b};
-
-                plot(linearFunctionPoints, linearFunction(), new double[]{k, b});
-
-                double[] exponentialVar = GaussMethod(new double[][]{
-                        {movingTableData.size() - 2, sumX, lnPriceSum()},
-                        {sumX, sumSqrX, timeLnPriceSum()}
-                });
-
-                plot(exponentialFunctionPoints, exponentialFunction(),
-                        Arrays.stream(exponentialVar)
-                                .map(Math::exp)
-                                .peek(System.out::println)
-                                .toArray()
-                );
-
-                double[] parabolaVar = GaussMethod(new double[][]{
-                        {movingTableData.size() - 2, sumX, sumSqrX, sumY},
-                        {sumX, sumSqrX, timePowSum(3), sumXY},
-                        {sumSqrX, timePowSum(3), timePowSum(4), timeSqrPriceSum()}
-                });
-
-                plot(parabolaFunctionPoints, parabolaFunction(), parabolaVar);
-
-
-                for (int i = 0; i < mainTableData.size(); i++) {
-                    double time = mainTableData.get(i).getTime();
-                    double price = mainTableData.get(i).getPrice();
-
-                    linearTableData.add(new FunctionTableEntity(
-                            time,
-                            price,
-                            (double) linearFunctionPoints.get(i).getYValue(),
-                            Math.pow((price - (double) linearFunctionPoints.get(i).getYValue()), 2))
-                    );
-
-                    exponentialTableData.add(new FunctionTableEntity(
-                            time,
-                            price,
-                            (double) exponentialFunctionPoints.get(i).getYValue(),
-                            Math.pow((price - (double) exponentialFunctionPoints.get(i).getYValue()), 2))
-                    );
-
-                    parabolaTableData.add(new FunctionTableEntity(
-                            time,
-                            price,
-                            (double) parabolaFunctionPoints.get(i).getYValue(),
-                            Math.pow((price - (double) parabolaFunctionPoints.get(i).getYValue()), 2))
-                    );
-
-                }
-
-                movingAverageTable.setItems(movingTableData);
-                mainCharacteristicTable.setItems(mainTableData);
-                linearTable.setItems(linearTableData);
-                exponentialTable.setItems(exponentialTableData);
-                parabolaTable.setItems(parabolaTableData);
-
-                //chart.getData().add();
                 chart.setData(FXCollections.observableArrayList(List.of(
                         new XYChart.Series<>("График ряда", graphPoints))
                 ));
-                chart2.setData(FXCollections.observableArrayList(List.of(
-                        new XYChart.Series<>("График ряда", graphPoints),
-                        new XYChart.Series<>("Скользящая средняя из трех уровней", moveAveragePoints))
-                ));
-
-                chart3.setData(FXCollections.observableArrayList(List.of(
-                        new XYChart.Series<>("График ряда", graphPoints),
-                        new XYChart.Series<>("Скользящая средняя", moveAveragePoints),
-                        new XYChart.Series<>("Линейная функция", linearFunctionPoints))
-                ));
-
-                chart4.setData(FXCollections.observableArrayList(List.of(
-                        new XYChart.Series<>("График ряда", graphPoints),
-                        new XYChart.Series<>("Скользящая средняя", moveAveragePoints),
-                        new XYChart.Series<>("Показательная функция", exponentialFunctionPoints))
-                ));
-
-                chart5.setData(FXCollections.observableArrayList(List.of(
-                        new XYChart.Series<>("График ряда", graphPoints),
-                        new XYChart.Series<>("Скользящая средняя", moveAveragePoints),
-                        new XYChart.Series<>("Порабола", parabolaFunctionPoints))
-                ));
-
-
+                mainCharacteristicTable.setItems(mainTableData);
                 vbox.getChildren().add(addBlock(
                         new Label[]{
-                                setLabelProperties(new Label("Основные характеристики"), 20, Pos.CENTER)
+                                setLabelProperties(new Label("Основные характеристики"), 20)
                         },
                         mainCharacteristicTable,
                         chart,
                         new Label[]{}
                 ));
 
-                double averageRowLevel = 0;
+
+                double averageRowLevel = mainTableData.stream()
+                        .mapToDouble(TableEntity::getPrice)
+                        .average()
+                        .orElse(0);
+
                 double averageAbsoluteGrowth =
                         (mainTableData.getLast().getPrice() - mainTableData.getFirst().getPrice())
                                 / (mainTableData.size() - 1);
+
                 double averageGrowthRate = Math.pow(
                         mainTableData.getLast().getPrice() / mainTableData.getFirst().getPrice(),
                         1.0 / mainTableData.size()
                 );
 
-                for (MainCharacteristicsTableEntity data : mainTableData) {
-                    averageRowLevel += data.getPrice();
-                }
-                averageRowLevel /= mainTableData.size();
-
-                double finalAverageRowLevel = averageRowLevel;
                 double variance = Math.sqrt(
                         mainTableData.stream()
-                                .mapToDouble(i -> Math.pow(i.getPrice() - finalAverageRowLevel, 2))
+                                .mapToDouble(i -> Math.pow(i.getPrice() - averageRowLevel, 2))
                                 .sum()
                                 / (mainTableData.size() - 1)
                 );
@@ -511,8 +432,7 @@ public class HelloApplication extends Application {
                 vbox.getChildren().addAll(
                         setLabelProperties(
                                 new Label("Средние показатели"),
-                                20,
-                                Pos.CENTER
+                                20
                         ),
                         setLabelProperties(
                                 new Label(
@@ -520,8 +440,7 @@ public class HelloApplication extends Application {
                                                 averageAbsoluteGrowth + " - средний абсолютный прирост\n" +
                                                 averageGrowthRate + " - средний темп роста\n" +
                                                 variance + " - среднее квадратическое отклонение"),
-                                15,
-                                Pos.CENTER
+                                15
                         ),
                         setLabelProperties(
                                 new Label("Формула прогноза по среднему абсолютносу приросту\n" +
@@ -530,195 +449,275 @@ public class HelloApplication extends Application {
                                         "Yпр = " + mainTableData.getLast().getPrice() + " * " + averageGrowthRate + "^L\n" +
                                         "L - период упреждения"
                                 ),
-                                15,
-                                Pos.CENTER
+                                15
                         )
                 );
 
-                int index1 = (mainTableData.size() / 2);
-                int index2 = mainTableData.size();
+                if (mainTableData.size() > 3) {
+                    double sumX = timePowSum(1);
+                    double sumY = priceSum();
+                    double sumXY = timeAndPriceSum();
+                    double sumSqrX = timePowSum(2);
 
-                //System.out.println(index1 + " " + index2 + " indexes");
+                    double k = getK(sumX, sumY, sumXY, sumSqrX);
+                    double b = getB(k, sumX, sumY);
 
-                double middleRowLevel1 = getMiddleRowLevel(0, index1);
-                double middleRowLevel2 = getMiddleRowLevel(index1, index2);
+                    double[] linearVar = new double[]{k, b};
 
-                double varianceLevel1 = getVariance(0, index1, middleRowLevel1);
-                double varianceLevel2 = getVariance(index1, index2, middleRowLevel2);
+                    plot(linearFunctionPoints, linearFunction(), new double[]{k, b});
 
-                double F = Double.max(varianceLevel1, varianceLevel2) / Double.min(varianceLevel1, varianceLevel2);
+                    double[] exponentialVar = GaussMethod(new double[][]{
+                            {movingTableData.size() - 2, sumX, lnPriceSum()},
+                            {sumX, sumSqrX, timeLnPriceSum()}
+                    });
 
-                double tableF = new FDistribution(
-                        index1 - 1,
-                        index2 - index1 - 1
-                ).inverseCumulativeProbability(1.0 - 0.05);
-
-                double t;
-
-                double tableT;
-
-                String str1 = "";
-                String str2 = "";
-
-                if (F < tableF) {
-                    double deviation = Math.sqrt(
-                            ((varianceLevel1 * (index1 - 1)) + (varianceLevel2 * (index2 - index1 - 1)))
-                                    / (index1 + (index2 - index1) - 2)
+                    plot(exponentialFunctionPoints, exponentialFunction(),
+                            Arrays.stream(exponentialVar)
+                                    .map(Math::exp)
+                                    .toArray()
                     );
 
-                    str1 += "вычисленный F-критерий Фишера меньше табличного, следовательно, \n" +
-                            "дисперсии уровней в двух половинах ряда отличаются незначимо\n" +
-                            deviation + " - среднее квадратическое отклонение\n";
+                    double[] parabolaVar = GaussMethod(new double[][]{
+                            {movingTableData.size() - 2, sumX, sumSqrX, sumY},
+                            {sumX, sumSqrX, timePowSum(3), sumXY},
+                            {sumSqrX, timePowSum(3), timePowSum(4), timeSqrPriceSum()}
+                    });
 
-                    t = Math.abs(middleRowLevel1 - middleRowLevel2)
-                            / (deviation * Math.sqrt((1.0 / index1) + (1.0 / (index2 - index1))));
+                    plot(parabolaFunctionPoints, parabolaFunction(), parabolaVar);
 
-                    tableT = new TDistribution(index2 - 2)
-                            .inverseCumulativeProbability(1.0 - 0.05 / 2);
 
-                } else {
+                    for (int i = 0; i < mainTableData.size(); i++) {
+                        double time = mainTableData.get(i).getTime();
+                        double price = mainTableData.get(i).getPrice();
 
-                    double f = ((varianceLevel1 / index1) + (varianceLevel2 / (index2 - index1)))
-                            / Math.sqrt((Math.pow(varianceLevel1 / index1, 2) / (index1 + 1))
-                            + (Math.pow(varianceLevel2 / (index2 - index1), 2) / (index2 - index1 + 1))
+                        linearTableData.add(new FunctionTableEntity(
+                                time,
+                                price,
+                                (double) linearFunctionPoints.get(i).getYValue(),
+                                Math.pow((price - (double) linearFunctionPoints.get(i).getYValue()), 2))
+                        );
+
+                        exponentialTableData.add(new FunctionTableEntity(
+                                time,
+                                price,
+                                (double) exponentialFunctionPoints.get(i).getYValue(),
+                                Math.pow((price - (double) exponentialFunctionPoints.get(i).getYValue()), 2))
+                        );
+
+                        parabolaTableData.add(new FunctionTableEntity(
+                                time,
+                                price,
+                                (double) parabolaFunctionPoints.get(i).getYValue(),
+                                Math.pow((price - (double) parabolaFunctionPoints.get(i).getYValue()), 2))
+                        );
+
+                    }
+
+                    movingAverageTable.setItems(movingTableData);
+                    linearTable.setItems(linearTableData);
+                    exponentialTable.setItems(exponentialTableData);
+                    parabolaTable.setItems(parabolaTableData);
+
+                    chart2.setData(FXCollections.observableArrayList(List.of(
+                            new XYChart.Series<>("График ряда", graphPoints),
+                            new XYChart.Series<>("Скользящая средняя из трех уровней", moveAveragePoints))
+                    ));
+
+                    chart3.setData(FXCollections.observableArrayList(List.of(
+                            new XYChart.Series<>("График ряда", graphPoints),
+                            new XYChart.Series<>("Скользящая средняя", moveAveragePoints),
+                            new XYChart.Series<>("Линейная функция", linearFunctionPoints))
+                    ));
+
+                    chart4.setData(FXCollections.observableArrayList(List.of(
+                            new XYChart.Series<>("График ряда", graphPoints),
+                            new XYChart.Series<>("Скользящая средняя", moveAveragePoints),
+                            new XYChart.Series<>("Показательная функция", exponentialFunctionPoints))
+                    ));
+
+                    chart5.setData(FXCollections.observableArrayList(List.of(
+                            new XYChart.Series<>("График ряда", graphPoints),
+                            new XYChart.Series<>("Скользящая средняя", moveAveragePoints),
+                            new XYChart.Series<>("Порабола", parabolaFunctionPoints))
+                    ));
+
+                    int index1 = (mainTableData.size() / 2);
+                    int index2 = mainTableData.size();
+
+
+                    double middleRowLevel1 = getMiddleRowLevel(0, index1);
+                    double middleRowLevel2 = getMiddleRowLevel(index1, index2);
+
+                    double varianceLevel1 = getVariance(0, index1, middleRowLevel1);
+                    double varianceLevel2 = getVariance(index1, index2, middleRowLevel2);
+
+                    double F = Double.max(varianceLevel1, varianceLevel2) / Double.min(varianceLevel1, varianceLevel2);
+
+                    double tableF = new FDistribution(
+                            index1 - 1,
+                            index2 - index1 - 1
+                    ).inverseCumulativeProbability(1.0 - 0.05);
+
+                    double t;
+
+                    double tableT;
+
+                    String str1 = "";
+                    String str2 = "";
+
+                    if (F < tableF) {
+                        double deviation = Math.sqrt(
+                                ((varianceLevel1 * (index1 - 1)) + (varianceLevel2 * (index2 - index1 - 1)))
+                                        / (index1 + (index2 - index1) - 2)
+                        );
+
+                        str1 += "вычисленный F-критерий Фишера меньше табличного, следовательно, \n" +
+                                "дисперсии уровней в двух половинах ряда отличаются незначимо\n" +
+                                deviation + " - среднее квадратическое отклонение\n";
+
+                        t = Math.abs(middleRowLevel1 - middleRowLevel2)
+                                / (deviation * Math.sqrt((1.0 / index1) + (1.0 / (index2 - index1))));
+
+                        tableT = new TDistribution(index2 - 2)
+                                .inverseCumulativeProbability(1.0 - 0.05 / 2);
+
+                    } else {
+
+                        double f = ((varianceLevel1 / index1) + (varianceLevel2 / (index2 - index1)))
+                                / Math.sqrt((Math.pow(varianceLevel1 / index1, 2) / (index1 + 1))
+                                + (Math.pow(varianceLevel2 / (index2 - index1), 2) / (index2 - index1 + 1))
+                        );
+                        str1 += "вычисленный F-критерий Фишера больше табличного, следовательно, " +
+                                "дисперсии уровней в двух половинах ряда отличаются значимо\n";
+
+                        t = Math.abs(middleRowLevel1 - middleRowLevel2) /
+                                Math.sqrt((1.0 / index1) + (1.0 / (index2 - index1)));
+
+                        tableT = new TDistribution(f - 2).inverseCumulativeProbability(1.0 - 0.05 / 2);
+                    }
+
+                    if (t < tableT) {
+                        double error =
+                                new TDistribution(mainTableData.size() - 1).inverseCumulativeProbability(1.0 - 0.05 / 2)
+                                        * variance
+                                        * Math.sqrt(1 + (1 / (mainTableData.size() - 1.0)));
+
+                        str2 += "вычисленный t-критерий Стьюдента меньше табличного, \n" +
+                                "т.е с большей вероятностью ряд не имеет тенденции и \n" +
+                                "его можно считать стационарным\n" +
+                                error + " - ошибка прогноза\n" +
+                                (averageRowLevel - error) + " < Y-пр < " + (averageRowLevel + error);
+                    } else {
+                        str2 += """
+                                вычисленный t-критерий Стьюдента больше табличного,\s
+                                т.е ряд нельзя считать стационарным
+                                """;
+                    }
+
+                    vbox.getChildren().addAll(
+                            setLabelProperties(
+                                    new Label("Проверка ряда на стационарность"),
+                                    20
+                            ),
+                            setLabelProperties(
+                                    new Label(middleRowLevel1 + ", " + middleRowLevel2 +
+                                            " - средние уровни половин ряда\n" +
+                                            varianceLevel1 + ", " + varianceLevel2 + " - дисперсии половин ряда\n" +
+                                            F + " - F-критерий Фишера\n" +
+                                            tableF + " - F-критерий Фишера табличный\n" +
+                                            str1 +
+                                            t + " - t-критерий Стьюдента\n" +
+                                            tableT + "- t-критерий Стьюдента табличный\n" +
+                                            str2),
+                                    15
+                            )
                     );
-                    str1 += "вычисленный F-критерий Фишера больше табличного, следовательно, " +
-                            "дисперсии уровней в двух половинах ряда отличаются значимо\n";
 
-                    t = Math.abs(middleRowLevel1 - middleRowLevel2) /
-                            Math.sqrt((1.0 / index1) + (1.0 / (index2 - index1)));
+                    vbox.getChildren().add(addBlock(
+                            new Label[]{
+                                    setLabelProperties(new Label("Скользящая средняя"), 20)
+                            },
+                            movingAverageTable,
+                            chart2,
+                            new Label[]{}
+                    ));
 
-                    tableT = new TDistribution(f - 2).inverseCumulativeProbability(1.0 - 0.05 / 2);
+
+                    double sum = getErrorSum(linearTableData);
+
+                    vbox.getChildren().add(addBlock(
+                            new Label[]{
+                                    setLabelProperties(new Label("Прямая"), 20),
+                                    setLabelProperties(
+                                            new Label("Уравнение прямой: y = " + linearVar[0] + "*t + " + linearVar[1]),
+                                            15
+                                    )
+                            },
+                            linearTable,
+                            chart3,
+                            new Label[]{
+                                    setLabelProperties(
+                                            new Label(sum + " - сумма квадратов отклонений\n" +
+                                                    (sum / (linearTableData.size() - linearVar.length)) +
+                                                    " - средняя квадратическая ошибка уравнения тренда"
+                                            ),
+                                            15
+                                    )
+                            }
+                    ));
+
+                    sum = getErrorSum(exponentialTableData);
+
+                    vbox.getChildren().add(addBlock(
+                            new Label[]{
+                                    setLabelProperties(
+                                            new Label("Показательная функция"),
+                                            20
+                                    ),
+                                    setLabelProperties(
+                                            new Label("Уравнение показательной функции: y = " +
+                                                    exponentialVar[0] + " * " + exponentialVar[1] + "^t"),
+                                            15
+                                    )
+                            },
+                            exponentialTable,
+                            chart4,
+                            new Label[]{
+                                    setLabelProperties(
+                                            new Label(sum + " - сумма квадратов отклонений\n" +
+                                                    (sum / (exponentialTableData.size() - exponentialVar.length))
+                                                    + " - средняя квадратическая ошибка уравнения тренда"),
+                                            15
+                                    )
+                            }
+                    ));
+
+                    sum = getErrorSum(parabolaTableData);
+
+                    vbox.getChildren().add(addBlock(
+                            new Label[]{
+                                    setLabelProperties(
+                                            new Label("Парабола"),
+                                            20),
+                                    setLabelProperties(
+                                            new Label("Уравнение параболы: y = "
+                                                    + parabolaVar[0] + " + " + parabolaVar[1] +
+                                                    "*t + " + parabolaVar[2] + "*t^2"),
+                                            15
+                                    )
+                            },
+                            parabolaTable,
+                            chart5,
+                            new Label[]{
+                                    setLabelProperties(
+                                            new Label(sum + " - сумма квадратов отклонений\n" +
+                                                    (sum / (exponentialTableData.size() - exponentialVar.length)) +
+                                                    " - средняя квадратическая ошибка уравнения тренда"),
+                                            15
+                                    )
+                            }
+                    ));
                 }
-
-                if (t < tableT) {
-                    double error =
-                            new TDistribution(mainTableData.size() - 1).inverseCumulativeProbability(1.0 - 0.05 / 2)
-                                    * variance
-                                    * Math.sqrt(1 + (1 / (mainTableData.size() - 1.0)));
-
-                    str2 += "вычисленный t-критерий Стьюдента меньше табличного, \n" +
-                            "т.е с большей вероятностью ряд не имеет тенденции и \n" +
-                            "его можно считать стационарным\n" +
-                            error + " - ошибка прогноза\n" +
-                            (averageRowLevel - error) + " < Y-пр < " + (averageRowLevel + error);
-                } else {
-                    str2 += """
-                            вычисленный t-критерий Стьюдента больше табличного,\s
-                            т.е ряд нельзя считать стационарным
-                            """;
-                }
-
-                vbox.getChildren().addAll(
-                        setLabelProperties(
-                                new Label("Проверка ряда на стационарность"),
-                                20,
-                                Pos.CENTER),
-                        setLabelProperties(
-                                new Label(middleRowLevel1 + ", " + middleRowLevel2 +
-                                        " - средние уровни половин ряда\n" +
-                                        varianceLevel1 + ", " + varianceLevel2 + " - дисперсии половин ряда\n" +
-                                        F + " - F-критерий Фишера\n" +
-                                        tableF + " - F-критерий Фишера табличный\n" +
-                                        str1 +
-                                        t + " - t-критерий Стьюдента\n" +
-                                        tableT + "- t-критерий Стьюдента табличный\n" +
-                                        str2),
-                                15,
-                                Pos.CENTER)
-                );
-
-                vbox.getChildren().add(addBlock(
-                        new Label[]{
-                                setLabelProperties(new Label("Скользящая средняя"), 20, Pos.CENTER)
-                        },
-                        movingAverageTable,
-                        chart2,
-                        new Label[]{}
-                ));
-
-
-                double sum = getErrorSum(linearTableData);
-
-                vbox.getChildren().add(addBlock(
-                        new Label[]{
-                                setLabelProperties(new Label("Прямая"), 20, Pos.CENTER),
-                                setLabelProperties(
-                                        new Label("Уравнение прямой: y = " + linearVar[0] + "*t + " + linearVar[1]),
-                                        15,
-                                        Pos.CENTER
-                                )
-                        },
-                        linearTable,
-                        chart3,
-                        new Label[]{
-                                setLabelProperties(
-                                        new Label(sum + " - сумма квадратов отклонений\n" +
-                                                (sum / (linearTableData.size() - linearVar.length)) +
-                                                " - средняя квадратическая ошибка уравнения тренда"
-                                        ),
-                                        15,
-                                        Pos.CENTER
-                                )
-                        }
-                ));
-
-                sum = getErrorSum(exponentialTableData);
-
-                vbox.getChildren().add(addBlock(
-                        new Label[]{
-                                setLabelProperties(
-                                        new Label("Показательная функция"),
-                                        20,
-                                        Pos.CENTER),
-                                setLabelProperties(
-                                        new Label("Уравнение показательной функции: y = " +
-                                                exponentialVar[0] + " * " + exponentialVar[1] + "^t"),
-                                        15,
-                                        Pos.CENTER
-                                )
-                        },
-                        exponentialTable,
-                        chart4,
-                        new Label[]{
-                                setLabelProperties(
-                                        new Label(sum + " - сумма квадратов отклонений\n" +
-                                                (sum / (exponentialTableData.size() - exponentialVar.length))
-                                                + " - средняя квадратическая ошибка уравнения тренда"),
-                                        15,
-                                        Pos.CENTER
-                                )
-                        }
-                ));
-
-                sum = getErrorSum(parabolaTableData);
-
-                vbox.getChildren().add(addBlock(
-                        new Label[]{
-                                setLabelProperties(
-                                        new Label("Парабола"),
-                                        20,
-                                        Pos.CENTER),
-                                setLabelProperties(
-                                        new Label("Уравнение параболы: y = "
-                                                + parabolaVar[0] + " + " + parabolaVar[1] +
-                                                "*t + " + parabolaVar[2] + "*t^2"),
-                                        15,
-                                        Pos.CENTER
-                                )
-                        },
-                        parabolaTable,
-                        chart5,
-                        new Label[]{
-                                setLabelProperties(
-                                        new Label(sum + " - сумма квадратов отклонений\n" +
-                                                (sum / (exponentialTableData.size() - exponentialVar.length)) +
-                                                " - средняя квадратическая ошибка уравнения тренда"),
-                                        15,
-                                        Pos.CENTER
-                                )
-                        }
-                ));
 
                 Group block = new Group();
                 block.minHeight(500);
@@ -731,12 +730,6 @@ public class HelloApplication extends Application {
     }
 
     private void clearApp() {
-//        chart.getData().clear();
-//        chart2.getData().clear();
-//        chart3.getData().clear();
-//        chart4.getData().clear();
-//        chart5.getData().clear();
-
         mainCharacteristicTable.getItems().clear();
         movingAverageTable.getItems().clear();
         parabolaTable.getItems().clear();
@@ -775,7 +768,7 @@ public class HelloApplication extends Application {
         double sum = IntStream.range(start, end)
                 .mapToDouble(i -> Math.pow(mainTableData.get(i).getPrice() - middleRowLevel, 2))
                 .sum();
-        System.out.println(sum + " сумма дисперсия\n" + " " + (double) ((end - start) - 1));
+        //System.out.println(sum + " сумма дисперсия\n" + " " + (double) ((end - start) - 1));
         return sum / (double) ((end - start) - 1);
     }
 
@@ -786,10 +779,10 @@ public class HelloApplication extends Application {
                 .orElse(0);
     }
 
-    private Label setLabelProperties(Label label, int fontSize, Pos position) {
+    private Label setLabelProperties(Label label, int fontSize) {
         label.setStyle("-fx-font-size: " + fontSize + "; -fx-background-color: yellow;");
         label.setMaxWidth(Double.MAX_VALUE);
-        label.setAlignment(position);
+        label.setAlignment(Pos.CENTER);
         return label;
     }
 
@@ -862,8 +855,8 @@ public class HelloApplication extends Application {
         if (noSolutionFlag.get()) {
             System.out.println("No solution found");
         } else {
-            System.out.println("Ответ:");
-            printVector(answer);
+            //System.out.println("Ответ:");
+            //printVector(answer);
             return answer;
         }
         return new double[]{};
@@ -880,27 +873,27 @@ public class HelloApplication extends Application {
         for (int k = 0; k < matrix[0].length; k++) {
             for (int j = r + 1; j < matrix.length; j++) {
                 m = (-1) * matrix[j][k] / matrix[r][k];
-                System.out.println("Коэффициент = " + m);
+                //System.out.println("Коэффициент = " + m);
                 for (int i = k; i < matrix.length + 1; ++i) {
                     matrix[j][i] = matrix[r][i] * m + matrix[j][i];
                 }
-                printMatrix(matrix);
-                System.out.println();
+                //printMatrix(matrix);
+                //System.out.println();
             }
             r++;
         }
         return SolveGauss(matrix);
     }
 
-    public static void printMatrix(double[][] matrix) {
-        Arrays.stream(matrix).forEach(i -> System.out.println(Arrays.toString(i)));
-    }
-
-    public static void printVector(double[] v) {
-        for (int i = 0; i < v.length; i++) {
-            System.out.print("x" + (i + 1) + " = " + v[i] + "\n");
-        }
-    }
+//    public static void printMatrix(double[][] matrix) {
+//        Arrays.stream(matrix).forEach(i -> System.out.println(Arrays.toString(i)));
+//    }
+//
+//    public static void printVector(double[] v) {
+//        for (int i = 0; i < v.length; i++) {
+//            System.out.print("x" + (i + 1) + " = " + v[i] + "\n");
+//        }
+//    }
 
     private void plot(ObservableList<XYChart.Data<Number, Number>> points,
                       BiFunction<Double, double[], Double> function,
